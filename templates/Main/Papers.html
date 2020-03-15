@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Biblior{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="child-center">
+            <div class="papers cblock">
+                <div class="content">
+                    <h1 class="ui center aligned header">Результаты поиска</h1>
+                    <div class="results">
+                        <table class="ui celled table">
+                            <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Авторы</th>
+                                {% if type == 'journal-article' %}
+                                    <th>Журнал</th>
+                                {% endif %}
+                                <th>Год</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="results-rows">
+                            <tr id="row-template" class="hide" data-pages="">
+                                <td data-name="title" data-label="Название"></td>
+                                <td data-name="author" data-label="Авторы"></td>
+                                <td data-name="container" data-label="Журнал"></td>
+                                <td data-name="issued" data-label="Год"></td>
+                                <td data-label="">
+                                    <form action="{% url 'main:paper' %}" method="get">
+                                        <input type="hidden" name="DOI" value="">
+                                        <button class="borderless"><i class="quote right icon"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="loader" class="loader-placeholder">
+                        <div class="ui active inverted dimmer">
+                            <div class="ui large text loader">Поиск публикаций...</div>
+                        </div>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/autosize.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('button').click(function () {
+                $(this).addClass('loading')
+            });
+            var interval = setInterval(checkResult, 1000);
+            var counter = 0;
+
+            function checkResult() {
+                $.get("{% url 'main:papers_result' %}", function (data) {
+                    console.log(data, data['result']);
+                    counter++;
+                    if (counter > 10)
+                        clearInterval(interval);
+                    if (data['result']) {
+                        clearInterval(interval);
+                        $('#loader').addClass('hide');
+                        var $template = $('#row-template').clone().attr('id', '').removeClass('hide');
+                        var $result_rows = $('#results-rows');
+                        data['publications'].forEach(function (pub, i, arr) {
+                            console.log(pub);
+                            var $item = $template.clone();
+                            $item.find('td[data-name=title]').text(pub['title']);
+                            $item.find('td[data-name=author]').text(pub['author']);
+                            $item.find('td[data-name=issued]').text(pub['issued']);
+                            var container = pub['container_title'];
+                            if (pub['volume'].length > 0)
+                                container += 'Том: ' + pub['volume'];
+                            if (pub['issue'].length > 0)
+                                container += '№' + pub['issue'];
+                            $item.find('td[data-name=container]').text(container);
+                            $item.find('input[name=DOI]').val(pub['doi']);
+                            $item.appendTo($result_rows);
+                        });
+
+                    }
+
+                })
+            }
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,28 @@
+.papers{
+  width: 100%;
+
+  .header, .results{
+    float: left;
+    position: relative;
+    width: 100%;
+  }
+
+  .loader-placeholder{
+    height: 150px;
+    position: relative;
+    float: left;
+    width: 100%;
+  }
+
+  h1{
+    margin-bottom: 20px;
+  }
+
+  button.borderless{
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+
+}

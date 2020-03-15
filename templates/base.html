@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/png">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="website" property="og:type">
+    <meta content="Easy Password" property="og:site_name">
+    <meta content="https://easypassword.ru/static/img/favicon.ico" property="og:image">
+    <meta content="https://easypassword.ru/" property="og:url">
+    <meta content="Easy Password" name="twitter:site">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu+Condensed&display=swap" rel="stylesheet">
+
+    <link href="{% static 'css/semantic.min.css' %}?version=1" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}?version=1" rel="stylesheet">
+</head>
+<body>
+<header>
+    {% include 'navbar.html' %}
+</header>
+<main>
+
+    {% block content %}
+    {% endblock content %}
+</main>
+{% include 'footer.html' %}
+<!--Import jQuery before materialize.js-->
+<script type="text/javascript" src="{% static 'js/cookie.js' %}?version=1"></script>
+<script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}?version=1"></script>
+<script type="text/javascript" src="{% static 'js/semantic.min.js' %}?version=1"></script>
+{% block script %}{% endblock %}
+</body>
+</html>
