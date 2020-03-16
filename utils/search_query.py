@@ -1,6 +1,7 @@
 import requests
 import json
 from .decorators import make_async
+from .formatter import get_gost_article, reformat, get_gost_book
 
 search_results = {}
 pub_results = {}
@@ -32,11 +33,9 @@ def get_search_query(request, rows=20):
 
 @make_async
 def search_crossref(query, user_ip):
-    print('start search')
     url = f'https://api.crossref.org/works?{query}'
     r = requests.get(url)
     search_results[user_ip] = json.loads(r.content.decode('utf-8'))
-    print(search_results)
 
 
 def get_publications(user_ip):
@@ -53,8 +52,14 @@ def citation_format(doi):
 def get_publication(doi, user_ip):
     url = f'http://api.crossref.org/works/{doi}'
     r = requests.get(url)
-    pub_results[user_ip] = json.loads(r.content.decode('utf-8'))['message']
+    publication = json.loads(r.content.decode('utf-8'))['message']
+    publication = reformat(publication)
+    if publication['type'] == 'book':
+        gost = get_gost_book(publication)
+    else:
+        gost = get_gost_article(publication)
+    pub_results[user_ip] = {'gost': gost, 'publication': publication}
 
 
 def get_pub_result(user_ip):
-    return search_results.pop(user_ip, None)
+    return pub_results.pop(user_ip, None)

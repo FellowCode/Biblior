@@ -1,10 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Biblior: Личный кабинет{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="child-center">
+            <div class="personal-area cblock">
+                <div class="content">
+                    <h2 class="ui center aligned header">Личный кабинет</h2>
+                    <h3>{{ request.user.first_name }} {{ request.user.last_name }}</h3>
+                    <div class="ui sixteen wide">
+                        <a class="medium ui primary button">
+                            Изменить пароль
+                        </a>
+                    </div>
+                    {% if request.user.pubs.all|length > 0 %}
+                        <h3 class="ui header aligned center">История</h3>
+                        <table class="ui celled table">
+                            <thead>
+                            <tr>
+                                <th>Библиографическая ссылка</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for pub in request.user.pubs.all %}
+                                <tr>
+                                    <td data-type="gost">{{ pub.get_gost }}</td>
+                                    <td><a data-type="copybtn"><i class="copy right icon"></i></a></td>
+                                    <td><a href="{% url 'pub:cite' %}?type={{ pub.type }}&doi={{ pub.doi }}"><i
+                                            class="edit right icon"></i></a></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('a[data-type=copybtn]').click(function () {
+                var text = $(this).closest('tr').find('td[data-type=gost]').text();
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val(text).select();
+                document.execCommand("copy");
+                $temp.remove();
+            });
+        });
+    </script>
+{% endblock %}

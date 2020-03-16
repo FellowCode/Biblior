@@ -1,10 +1,10 @@
 rus_alphabet = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 
-def format_article(publication):
+def reformat(publication):
 
-    fpub = {'title': publication['title'][0], 'publisher': publication['publisher'],
+    fpub = {'title': publication['title'][0], 'publisher': publication.get('publisher', ''),
              'issued': publication['issued']['date-parts'][0][0], 'volume': publication.get('volume', ''),
-             'type': publication['type'], 'container_title': publication['container-title'][0], 'page': publication.get('page'),
+             'type': publication['type'], 'container_title': publication.get('container-title', [''])[0], 'page': publication.get('page', ''),
              'issue': publication.get('issue', ''), 'doi': publication['DOI']}
     if len(publication.get('original-title', '')) > 0:
         fpub['title'] = publication['original-title'][0]
@@ -13,19 +13,6 @@ def format_article(publication):
 
     return fpub
 
-def format_book(publication):
-    fpub = {'title': publication['title'][0], 'publisher': publication['publisher'],
-            'issued': publication['issued']['date-parts'][0][0], 'volume': publication.get('volume', ''),
-            'type': publication['type'], 'container_title': publication.get('container-title', []),
-            'page': publication.get('page'),
-            'issue': publication.get('issue'), 'doi': publication['DOI']}
-
-    if len(publication.get('original-title', '')) > 0:
-        fpub['title'] = publication['original-title'][0]
-
-    fpub['author'] = format_authors(publication.get('author', []))
-
-    return fpub
 
 def format_authors(authors):
     fauthors = []

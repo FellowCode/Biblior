@@ -51,4 +51,8 @@ def registration(request):
 
 
 def personal_area(request):
+    return render(request, 'Accounts/PersonalArea.html')
+
+
+def change_password(request):
     pass

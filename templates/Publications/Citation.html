@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Biblior{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="child-center">
+            <div class="paper cblock">
+                <div class="content">
+                    <div class="child-center">
+                        <div class="form">
+                            <h2 class="ui center aligned header">Создание цитаты</h2>
+                            <div class="ui sixteen wide scholar-link">
+                                <a href="https://scholar.google.com/scholar?hl=ru&as_sdt=0%2C5&q={{ doi }}"
+                                   target="_blank">Найти в
+                                    Google Scholar</a>
+                            </div>
+                            <div id="loader">
+                                <div class="ui active inverted dimmer">
+                                    <div class="ui medium text loader">Публикация загружается...</div>
+                                </div>
+                                <p></p>
+                            </div>
+                            <form action="" class="ui form remove-empty-values">
+                                {% csrf_token %}
+                                <input type="hidden" name="type" value="{{ type }}">
+                                <input type="hidden" name="doi" value="{{ doi }}">
+                                <div class="field">
+                                    <label>Название публикации</label>
+                                    <textarea name="title" rows="2"></textarea>
+                                </div>
+                                {% if type == 'book' %}
+                                    <div class="field">
+                                        <label>Издатель</label>
+                                        <textarea name="publisher" rows="2"></textarea>
+                                    </div>
+                                {% endif %}
+                                <div class="field">
+                                    <label>Авторы</label>
+                                    <textarea name="author" rows="2"></textarea>
+                                </div>
+                                {% if type == 'journal-article' or type == 'book-chapter' %}
+                                    <div class="field">
+                                        <label>{% if type == 'journal-article' %}Журнал{% else %}
+                                            Сборник{% endif %}</label>
+                                        <textarea name="container_title"
+                                                  rows="1"></textarea>
+                                    </div>
+                                    <div class="four fields">
+                                        <div class="field">
+                                            <label>Год</label>
+                                            <input name="issued" value="">
+                                        </div>
+                                        <div class="field">
+                                            <label>Том</label>
+                                            <input name="volume" value="">
+                                        </div>
+                                        <div class="field">
+                                            <label>Номер</label>
+                                            <input name="issue" value="">
+                                        </div>
+                                        <div class="field">
+                                            <label>Страницы</label>
+                                            <input name="page" value="">
+                                        </div>
+                                    </div>
+                                {% elif type == 'book' %}
+                                    <input type="hidden" name="issue" value="">
+                                    <input type="hidden" name="page" value="">
+                                    <div class="two fields">
+                                        <div class="field">
+                                            <label>Том</label>
+                                            <input name="volume" value="">
+                                        </div>
+                                        <div class="field">
+                                            <label>Год</label>
+                                            <input name="issued" value="">
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="child-center">
+                                    <button class="large ui primary button">
+                                        Обновить цитату
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="ui form">
+                                <div class="field">
+                                    <label>Результат</label>
+                                    <textarea name="result" rows="6"></textarea>
+                                </div>
+                                <div class="child-center">
+                                    <a onclick="copyToClipboard()" class="large ui primary button">
+                                        Скопировать
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var type = '{{ type }}';
+            var $title = $('[name=title]');
+            var $author = $('[name=author]');
+            var $issued = $('[name=issued]');
+            var $volume = $('[name=volume]');
+            var $result = $('[name=result]');
+            if (type === 'book') {
+                var $publisher = $('[name=publisher]');
+            } else {
+                var $container = $('[name=container_title]');
+                var $issue = $('[name=issue]');
+                var $page = $('[name=page]');
+            }
+            $('form').submit(function (e) {
+                e.preventDefault();
+                var data = $('form').serializeArray();
+                $.post({url: '{% url 'pub:save_cite' %}', data: data});
+            });
+            $('button').click(function () {
+                if (type === 'book')
+                    $result.val(createGostBook());
+                else
+                    $result.val(createGostAticle());
+            });
+            var interval = setInterval(checkResult, 500);
+            var counter = 0;
+
+            function checkResult() {
+                $.get("{% url 'pub:result' %}", function (data) {
+                    counter++;
+                    if (counter > 7) {
+                        clearInterval(interval);
+                        $('#loader').addClass('hide');
+                    }
+                    if (data['status']) {
+                        $('#loader').addClass('hide');
+                        clearInterval(interval);
+                        $result.text(data['gost']);
+                        var pub = data['publication'];
+                        $title.text(pub['title']);
+                        $author.text(pub['author']);
+                        $issued.val(pub['issued']);
+                        $volume.val(pub['volume']);
+                        if (type === 'book') {
+                            $publisher.text(pub['publisher'])
+                        } else {
+                            $container.text(pub['container_title']);
+                            $issue.val(pub['issue']);
+                            $page.val(pub['page']);
+                        }
+                    }
+                })
+            }
+
+            function createGostAticle() {
+                var gost = `${$author.val()} ${$title.val()} // ${$container.val()}. – ${$issued.val()}.`;
+                if ($volume.val().length > 0)
+                    gost += ` – Т. ${$volume.val()}.`;
+                if ($issue.val().length > 0)
+                    gost += ` – №. ${$issue.val()}.`;
+                if ($page.val().length > 0)
+                    gost += ` – С. ${$page.val().replace('-', '–')}.`;
+                return gost
+            }
+
+            function createGostBook() {
+                var gost = `${$author.val()} ${$title.val()}. – ${$publisher.val()}, – ${$issued.val()}.`
+                return gost;
+            }
+        });
+
+
+        function copyToClipboard() {
+            var text = $('[name=result]').text();
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val(text).select();
+            document.execCommand("copy");
+            $temp.remove();
+        }
+    </script>
+{% endblock %}

@@ -17,6 +17,8 @@
                                 <th>Авторы</th>
                                 {% if type == 'journal-article' %}
                                     <th>Журнал</th>
+                                {% else %}
+                                    <th>Издатель</th>
                                 {% endif %}
                                 <th>Год</th>
                                 <th></th>
@@ -29,8 +31,9 @@
                                 <td data-name="container" data-label="Журнал"></td>
                                 <td data-name="issued" data-label="Год"></td>
                                 <td data-label="">
-                                    <form action="{% url 'main:paper' %}" method="get">
-                                        <input type="hidden" name="DOI" value="">
+                                    <form action="{% url 'pub:cite' %}" method="get">
+                                        <input type="hidden" name="type" value="{{ type }}">
+                                        <input type="hidden" name="doi" value="">
                                         <button class="borderless"><i class="quote right icon"></i></button>
                                     </form>
                                 </td>
@@ -52,45 +55,50 @@
     </div>
 {% endblock %}
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/autosize.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('button').click(function () {
-                $(this).addClass('loading')
-            });
-            var interval = setInterval(checkResult, 1000);
+            var interval;
             var counter = 0;
+            var state = window.history.state;
+            console.log(state);
+            if (state != null && state !== "null"){
+                insertPubs(state['pubs']);
+            } else {
+                interval = setInterval(checkResult, 1000);
+            }
 
             function checkResult() {
-                $.get("{% url 'main:papers_result' %}", function (data) {
-                    console.log(data, data['result']);
+                $.get("{% url 'pub:list_result' %}", function (data) {
                     counter++;
-                    if (counter > 10)
+                    if (counter > 15)
                         clearInterval(interval);
-                    if (data['result']) {
+                    if (data['status']) {
                         clearInterval(interval);
-                        $('#loader').addClass('hide');
-                        var $template = $('#row-template').clone().attr('id', '').removeClass('hide');
-                        var $result_rows = $('#results-rows');
-                        data['publications'].forEach(function (pub, i, arr) {
-                            console.log(pub);
-                            var $item = $template.clone();
-                            $item.find('td[data-name=title]').text(pub['title']);
-                            $item.find('td[data-name=author]').text(pub['author']);
-                            $item.find('td[data-name=issued]').text(pub['issued']);
-                            var container = pub['container_title'];
-                            if (pub['volume'].length > 0)
-                                container += 'Том: ' + pub['volume'];
-                            if (pub['issue'].length > 0)
-                                container += '№' + pub['issue'];
-                            $item.find('td[data-name=container]').text(container);
-                            $item.find('input[name=DOI]').val(pub['doi']);
-                            $item.appendTo($result_rows);
-                        });
+                        insertPubs(data['publications']);
 
+                        window.history.replaceState({pubs: data['publications']}, "Publications loaded", '#loaded');
                     }
-
                 })
+            }
+
+            function insertPubs(pubs) {
+                $('#loader').addClass('hide');
+                var $template = $('#row-template').clone().attr('id', '').removeClass('hide');
+                var $result_rows = $('#results-rows');
+                pubs.forEach(function (pub, i, arr) {
+                    var $item = $template.clone();
+                    $item.find('td[data-name=title]').text(pub['title']);
+                    $item.find('td[data-name=author]').text(pub['author']);
+                    $item.find('td[data-name=issued]').text(pub['issued']);
+                    var container = pub['container_title'];
+                    if (pub['volume'].length > 0)
+                        container += ' Том: ' + pub['volume'];
+                    if (pub['issue'].length > 0)
+                        container += ' №' + pub['issue'];
+                    $item.find('td[data-name=container]').text(container);
+                    $item.find('input[name=doi]').val(pub['doi']);
+                    $item.appendTo($result_rows);
+                });
             }
         })
     </script>
