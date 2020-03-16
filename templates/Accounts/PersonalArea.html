@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load extensions %}
 
 {% block title %}Biblior: Личный кабинет{% endblock %}
 
@@ -25,11 +26,11 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for pub in request.user.pubs.all %}
+                            {% for pub in request.user.pubs.all|maxlength:20 %}
                                 <tr>
                                     <td data-type="gost">{{ pub.get_gost }}</td>
                                     <td><a data-type="copybtn"><i class="copy right icon"></i></a></td>
-                                    <td><a href="{% url 'pub:cite' %}?type={{ pub.type }}&doi={{ pub.doi }}"><i
+                                    <td><a href="{% url 'pub:cite' %}?type={{ pub.type }}&doi={{ pub.doi }}&source=personal-area"><i
                                             class="edit right icon"></i></a></td>
                                 </tr>
                             {% endfor %}

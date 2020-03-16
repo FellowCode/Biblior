@@ -25,7 +25,7 @@ class Publication(models.Model):
     update_dt = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title[:min(len(self.title)-1, 60)] + '...'
+        return self.title[:min(len(self.title), 60)] + '...'
 
     @staticmethod
     def set_pub(user, pub):

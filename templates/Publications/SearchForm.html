@@ -8,19 +8,26 @@
             <div class="search-form cblock">
                 <div class="content">
                     <div class="child-center">
-                        <div class="form">
+                        <form action="{% url 'pub:list' %}" class="ui form remove-empty-values">
                             <h2 class="ui center aligned header">Искать публикации</h2>
-                            <form action="{% url 'pub:list' %}" class="ui form remove-empty-values">
-                                <input type="hidden" name="search_type" value="journal-article">
-                                <div class="ui three item menu">
-                                    <a class="active item" data-value="journal-article">Статьи в журнале</a>
-                                    <a class="item" data-value="book">Книги</a>
-                                    <a class="item" data-value="book-chapter">В сборнике</a>
-                                </div>
+                            <input type="hidden" name="search_type" value="journal-article">
+                            <div id="pub-type" class="ui three item menu">
+                                <a class="active item" data-value="journal-article">Статьи в журнале</a>
+                                <a class="item" data-value="book">Книги</a>
+                                <a class="item" data-value="book-chapter">В сборнике</a>
+                            </div>
+                            <div id="search-type" class="ui two item menu">
+                                <a class="active item" data-value="main-search">Полный поиск</a>
+                                <a class="item" data-value="extend-search">Поиск по полям</a>
+                            </div>
+                            <div class="main-search">
                                 <div class="field">
                                     <label>Полный поиск</label>
-                                    <input type="text" name="query_bibliographic" placeholder="Введите параметры...">
+                                    <input type="text" name="query_bibliographic"
+                                           placeholder="Введите параметры...">
                                 </div>
+                            </div>
+                            <div class="extend-search hide">
                                 <div class="field">
                                     <label>Название</label>
                                     <input type="text" name="query_title" placeholder="Введите название...">
@@ -28,6 +35,10 @@
                                 <div class="field">
                                     <label>Авторы</label>
                                     <input type="text" name="query_authors" placeholder="Введите авторов...">
+                                </div>
+                                <div class="field">
+                                    <label>Журнал</label>
+                                    <input type="text" name="query_container" placeholder="Введите журнал...">
                                 </div>
                                 <div class="inline fields">
                                     <div class="ten wide field">
@@ -38,14 +49,14 @@
                                         <input type="text" name="year_until" placeholder="До...">
                                     </div>
                                 </div>
-                                <div class="child-center">
-                                    <button class="large ui primary button">
-                                        <i class="search icon"></i>
-                                        Искать
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="child-center">
+                                <button class="large ui primary button">
+                                    <i class="search icon"></i>
+                                    Искать
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -56,10 +67,24 @@
     <script type="text/javascript">
         $(document).ready(function () {
             var $input_search_type = $('input[name=search_type]');
+            var $main_search = $('.main-search');
+            var $extend_search = $('.extend-search');
             $('.ui.menu .item').click(function () {
-                $input_search_type.val($(this).attr('data-value'));
                 $(this).closest('div').find('.active').removeClass('active');
                 $(this).addClass('active');
+            });
+            $('#pub-type .item').click(function () {
+                $input_search_type.val($(this).attr('data-value'));
+            });
+            $('#search-type .item').click(function () {
+                var search_type = $(this).attr('data-value');
+                if (search_type === 'main-search') {
+                    $main_search.removeClass('hide');
+                    $extend_search.addClass('hide');
+                } else {
+                    $main_search.addClass('hide');
+                    $extend_search.removeClass('hide');
+                }
             });
             $('button').click(function () {
                 $(this).addClass('loading')

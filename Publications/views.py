@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render
 
@@ -36,8 +37,13 @@ def ajax_pubs(request):
 def cite(request):
     doi = request.GET.get('doi')
     pub_type = request.GET.get('type')
-    get_publication(doi, get_client_ip(request))
-    return render(request, 'Publications/Citation.html', {'type': pub_type, 'doi': doi})
+    source = request.GET.get('source', '')
+    pub = None
+    if source == 'personal-area':
+        pub = Publication.objects.get_or_none(user=request.user, doi=doi)
+    else:
+        get_publication(doi, get_client_ip(request))
+    return render(request, 'Publications/Citation.html', {'type': pub_type, 'doi': doi, 'pub': pub})
 
 
 def ajax_pub(request):
@@ -52,13 +58,13 @@ def ajax_pub(request):
     raise Http404
 
 
+@login_required
 def save_cite(request):
     if request.is_ajax():
         if request.method == 'POST':
             pub = dict(request.POST)
             for key, value in pub.items():
                 pub[key] = value[0]
-            pp.pprint(pub)
             Publication.set_pub(request.user, pub).save()
             return HttpResponse()
     raise Http404

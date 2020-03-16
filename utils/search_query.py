@@ -10,8 +10,8 @@ def get_search_query(request, rows=20):
     search_type = request.GET.get('search_type')
     if search_type:
         elements = 'select=DOI,author,container-title,original-title,title,issued,publisher,subject,type,page,volume,issue'
-        sort='sort=score&order=desc'
-        query = f'{elements}&{sort}&rows={rows}&filter=type:{search_type}'
+        sort = 'sort=score&order=desc'
+        query = f'{elements}&{sort}&rows={rows}&filter=type:{search_type},has-full-text:true'
         query_bibliographic = request.GET.get('query_bibliographic')
         if query_bibliographic:
             return query + f'&query.bibliographic={query_bibliographic}'
@@ -27,6 +27,9 @@ def get_search_query(request, rows=20):
         authors = request.GET.get('query_authors')
         if authors:
             query += f'&query.authors={authors}'
+        query_container = request.GET.get('query_container')
+        if query_container:
+            query += f'&query.container-title={query_container}'
         return query
     return None
 

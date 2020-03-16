@@ -15,66 +15,75 @@
                                    target="_blank">Найти в
                                     Google Scholar</a>
                             </div>
+                            {% if not pub %}
                             <div id="loader">
                                 <div class="ui active inverted dimmer">
                                     <div class="ui medium text loader">Публикация загружается...</div>
                                 </div>
                                 <p></p>
                             </div>
-                            <form action="" class="ui form remove-empty-values">
+                            {% endif %}
+                            <form action="" class="ui form remove-empty-values {% if pub %}warning{% endif %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="type" value="{{ type }}">
                                 <input type="hidden" name="doi" value="{{ doi }}">
+                                <div class="ui warning message">
+                                    <div class="header">Это редактированная версия публикации.</div>
+                                    <ul class="list">
+                                        <li><a href="{% url 'pub:cite' %}?type={{ type }}&doi={{ doi }}">Загрузить оригинал</a></li>
+                                    </ul>
+                                </div>
                                 <div class="field">
                                     <label>Название публикации</label>
-                                    <textarea name="title" rows="2"></textarea>
+                                    <textarea name="title" rows="2">{{ pub.title|default_if_none:"" }}</textarea>
                                 </div>
                                 {% if type == 'book' %}
                                     <div class="field">
                                         <label>Издатель</label>
-                                        <textarea name="publisher" rows="2"></textarea>
+                                        <textarea name="publisher"
+                                                  rows="2">{{ pub.publisher|default_if_none:"" }}</textarea>
                                     </div>
                                 {% endif %}
                                 <div class="field">
                                     <label>Авторы</label>
-                                    <textarea name="author" rows="2"></textarea>
+                                    <textarea name="author" rows="2">{{ pub.author|default_if_none:"" }}</textarea>
                                 </div>
                                 {% if type == 'journal-article' or type == 'book-chapter' %}
                                     <div class="field">
                                         <label>{% if type == 'journal-article' %}Журнал{% else %}
                                             Сборник{% endif %}</label>
                                         <textarea name="container_title"
-                                                  rows="1"></textarea>
+                                                  rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
                                     </div>
                                     <div class="four fields">
                                         <div class="field">
                                             <label>Год</label>
-                                            <input name="issued" value="">
+                                            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
                                         </div>
                                         <div class="field">
                                             <label>Том</label>
-                                            <input name="volume" value="">
+                                            <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
                                         </div>
                                         <div class="field">
                                             <label>Номер</label>
-                                            <input name="issue" value="">
+                                            <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
                                         </div>
                                         <div class="field">
                                             <label>Страницы</label>
-                                            <input name="page" value="">
+                                            <input name="page" value="{{ pub.page|default_if_none:"" }}">
                                         </div>
                                     </div>
                                 {% elif type == 'book' %}
-                                    <input type="hidden" name="issue" value="">
-                                    <input type="hidden" name="page" value="">
+                                    <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                    <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
                                     <div class="two fields">
                                         <div class="field">
                                             <label>Том</label>
-                                            <input name="volume" value="">
+                                            <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
                                         </div>
                                         <div class="field">
                                             <label>Год</label>
-                                            <input name="issued" value="">
+                                            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
                                         </div>
                                     </div>
                                 {% endif %}
@@ -87,7 +96,7 @@
                             <div class="ui form">
                                 <div class="field">
                                     <label>Результат</label>
-                                    <textarea name="result" rows="6"></textarea>
+                                    <textarea name="result" rows="6">{{ pub.get_gost }}</textarea>
                                 </div>
                                 <div class="child-center">
                                     <a onclick="copyToClipboard()" class="large ui primary button">
@@ -129,7 +138,9 @@
                 else
                     $result.val(createGostAticle());
             });
-            var interval = setInterval(checkResult, 500);
+            {% if not pub %}
+                var interval = setInterval(checkResult, 500);
+            {% endif %}
             var counter = 0;
 
             function checkResult() {

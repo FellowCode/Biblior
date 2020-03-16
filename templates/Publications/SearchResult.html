@@ -90,7 +90,11 @@
                     $item.find('td[data-name=title]').text(pub['title']);
                     $item.find('td[data-name=author]').text(pub['author']);
                     $item.find('td[data-name=issued]').text(pub['issued']);
-                    var container = pub['container_title'];
+                    var container;
+                    if (pub['type'] === 'book')
+                        container = pub['publisher'];
+                    else
+                        container = pub['container_title'];
                     if (pub['volume'].length > 0)
                         container += ' Том: ' + pub['volume'];
                     if (pub['issue'].length > 0)
