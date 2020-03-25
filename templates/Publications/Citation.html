@@ -27,7 +27,7 @@
                             {% endif %}
                             <div id="pub_type" class="ui three item menu">
                                 <input type="hidden" name="pub_type" value="journal-article">
-                                <a class="{% if type == 'journal-article' or not doi %}active{% endif %} item" data-value="journal-article">Статья</a>
+                                <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item" data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
                                 <a class="{% if type == 'book-chapter' %}active{% endif %} item" data-value="book-chapter">В сборнике</a>
                             </div>
@@ -38,7 +38,7 @@
                                 <a class="item" data-value="harvard">Harvard</a>
                                 <a class="item" data-value="ieee">ieee</a>
                             </div>
-                            <form action="" class="ui form remove-empty-values {% if pub %}warning{% endif %}">
+                            <form action="" class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="type" value="{{ type }}">
                                 <input type="hidden" name="doi" value="{{ doi }}">
@@ -49,7 +49,7 @@
                                             оригинал</a></li>
                                     </ul>
                                 </div>
-                                {% if type == 'journal-article' or not doi %}
+                                {% if type == 'journal-article' or not type and not doi %}
                                     <div id="journal-article-form">
                                         <div class="field">
                                             <label>Название публикации</label>
@@ -104,7 +104,7 @@
                                         </div>
                                         <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
                                         <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
-                                        <div class="three fields">
+                                        <div class="two fields">
                                             <div class="field">
                                                 <label>Том</label>
                                                 <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
@@ -196,6 +196,9 @@
                 var $issue = $('[name=issue]');
                 var $page = $('[name=page]');
             }
+            setupChangePubType();
+
+            // Сохранение цитаты если авторизован
             $('form').submit(function (e) {
                 e.preventDefault();
                 {% if request.user.is_authenticated %}
@@ -209,9 +212,12 @@
                 else
                     $result.val(createGostAticle());
             });
+            // Транслит
             $('#translitbtn').click(function () {
                 $result.val(rus_to_latin($result.val()))
             });
+
+            // Загрузка публикации
             {% if not pub and doi %}
                 var interval = setInterval(checkResult, 500);
             {% endif %}
@@ -290,6 +296,26 @@
             $temp.val(text).select();
             document.execCommand("copy");
             $temp.remove();
+        }
+        
+        function setupChangePubType() {
+            // Смена типа публикации
+            $('#pub_type .item').click(function () {
+                var $form = $('form');
+                var data = $form.serializeArray();
+                var url = window.location.toString();
+                if (url.includes('type')) {
+                    var start = url.indexOf('type=') + 5;
+                    var end = url.indexOf('&', start);
+                    if (end < 0)
+                        end = url.length;
+                    url = url.replace(url.substr(start, end-start), $(this).attr('data-value'));
+                }else
+                    url+='?type='+$(this).attr('data-value');
+                $form.load(url + ' form', data);
+                window.history.replaceState(null, null, url);
+                //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
+            });
         }
 
 

@@ -1,6 +1,9 @@
+import urllib
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from Publications.models import Publication
 from utils.search_query import *
@@ -37,14 +40,24 @@ def cite(request):
     doi = request.GET.get('doi')
     pub_type = request.GET.get('type')
     source = request.GET.get('source', '')
-    pub = None
-    if source == 'personal-area' and request.user.is_authenticated:
-        pub = Publication.objects.get_or_none(user=request.user, doi=doi)
-        if not pub:
-            get_publication(doi, request.session['uid'])
+    if request.method == 'POST':
+        pub = dict(request.POST)
+        for key, value in pub.items():
+            pub[key] = value[0]
     else:
-        get_publication(doi, request.session['uid'])
-    return render(request, 'Publications/Citation.html', {'type': pub_type, 'doi': doi, 'pub': pub})
+        pub = None
+    data = {'type': pub_type, 'doi': doi, 'pub': pub}
+    if not pub and doi:
+        if source == 'personal-area' and request.user.is_authenticated:
+            pub = Publication.objects.get_or_none(user=request.user, doi=doi)
+            if pub:
+                data['custom'] = True
+                data['pub'] = pub
+            else:
+                get_publication(doi, request.session['uid'])
+        else:
+            get_publication(doi, request.session['uid'])
+    return render(request, 'Publications/Citation.html', data)
 
 
 def ajax_pub(request):
