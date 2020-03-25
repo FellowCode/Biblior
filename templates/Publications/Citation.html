@@ -10,19 +10,34 @@
                     <div class="child-center">
                         <div class="form">
                             <h2 class="ui center aligned header">Создание цитаты</h2>
-                            <div class="ui sixteen wide scholar-link">
-                                <a href="https://scholar.google.com/scholar?hl=ru&as_sdt=0%2C5&q={{ doi }}"
-                                   target="_blank">Найти в
-                                    Google Scholar</a>
-                            </div>
-                            {% if not pub %}
-                            <div id="loader">
-                                <div class="ui active inverted dimmer">
-                                    <div class="ui medium text loader">Публикация загружается...</div>
+                            {% if doi %}
+                                <div class="ui sixteen wide scholar-link">
+                                    <a href="https://scholar.google.com/scholar?hl=ru&as_sdt=0%2C5&q={{ doi }}"
+                                       target="_blank">Найти в
+                                        Google Scholar</a>
                                 </div>
-                                <p></p>
-                            </div>
                             {% endif %}
+                            {% if not pub and doi %}
+                                <div id="loader">
+                                    <div class="ui active inverted dimmer">
+                                        <div class="ui medium text loader">Публикация загружается...</div>
+                                    </div>
+                                    <p></p>
+                                </div>
+                            {% endif %}
+                            <div id="pub_type" class="ui three item menu">
+                                <input type="hidden" name="pub_type" value="journal-article">
+                                <a class="{% if type == 'journal-article' or not doi %}active{% endif %} item" data-value="journal-article">Статья</a>
+                                <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
+                                <a class="{% if type == 'book-chapter' %}active{% endif %} item" data-value="book-chapter">В сборнике</a>
+                            </div>
+                            <div data-input-name="cite_template" class="ui four item menu">
+                                <input type="hidden" name="cite_template" value="gost">
+                                <a class="active item" data-value="gost">ГОСТ 2008</a>
+                                <a class="item" data-value="apa">APA</a>
+                                <a class="item" data-value="harvard">Harvard</a>
+                                <a class="item" data-value="ieee">ieee</a>
+                            </div>
                             <form action="" class="ui form remove-empty-values {% if pub %}warning{% endif %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="type" value="{{ type }}">
@@ -30,65 +45,115 @@
                                 <div class="ui warning message">
                                     <div class="header">Это редактированная версия публикации.</div>
                                     <ul class="list">
-                                        <li><a href="{% url 'pub:cite' %}?type={{ type }}&doi={{ doi }}">Загрузить оригинал</a></li>
+                                        <li><a href="{% url 'pub:cite' %}?type={{ type }}&doi={{ doi }}">Загрузить
+                                            оригинал</a></li>
                                     </ul>
                                 </div>
-                                <div class="field">
-                                    <label>Название публикации</label>
-                                    <textarea name="title" rows="2">{{ pub.title|default_if_none:"" }}</textarea>
-                                </div>
-                                {% if type == 'book' %}
-                                    <div class="field">
-                                        <label>Издатель</label>
-                                        <textarea name="publisher"
-                                                  rows="2">{{ pub.publisher|default_if_none:"" }}</textarea>
-                                    </div>
-                                {% endif %}
-                                <div class="field">
-                                    <label>Авторы</label>
-                                    <textarea name="author" rows="2">{{ pub.author|default_if_none:"" }}</textarea>
-                                </div>
-                                {% if type == 'journal-article' or type == 'book-chapter' %}
-                                    <div class="field">
-                                        <label>{% if type == 'journal-article' %}Журнал{% else %}
-                                            Сборник{% endif %}</label>
-                                        <textarea name="container_title"
-                                                  rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
-                                    </div>
-                                    <div class="four fields">
+                                {% if type == 'journal-article' or not doi %}
+                                    <div id="journal-article-form">
                                         <div class="field">
-                                            <label>Год</label>
-                                            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            <label>Название публикации</label>
+                                            <textarea name="title"
+                                                      rows="2">{{ pub.title|default_if_none:"" }}</textarea>
                                         </div>
                                         <div class="field">
-                                            <label>Том</label>
-                                            <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                            <label>Авторы</label>
+                                            <textarea name="author"
+                                                      rows="2">{{ pub.author|default_if_none:"" }}</textarea>
                                         </div>
                                         <div class="field">
-                                            <label>Номер</label>
-                                            <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                            <label>Журнал</label>
+                                            <textarea name="container_title"
+                                                      rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
                                         </div>
-                                        <div class="field">
-                                            <label>Страницы</label>
-                                            <input name="page" value="{{ pub.page|default_if_none:"" }}">
+                                        <div class="four fields">
+                                            <div class="field">
+                                                <label>Год</label>
+                                                <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Том</label>
+                                                <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Номер</label>
+                                                <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Страницы</label>
+                                                <input name="page" value="{{ pub.page|default_if_none:"" }}">
+                                            </div>
                                         </div>
                                     </div>
-                                {% elif type == 'book' %}
-                                    <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
-                                    <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
-                                    <div class="two fields">
+                                {% elif type == "book" %}
+                                    <div id="book-form">
                                         <div class="field">
-                                            <label>Том</label>
-                                            <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                            <label>Название книги</label>
+                                            <textarea name="title"
+                                                      rows="2">{{ pub.title|default_if_none:"" }}</textarea>
                                         </div>
                                         <div class="field">
-                                            <label>Год</label>
-                                            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            <label>Издатель</label>
+                                            <textarea name="publisher"
+                                                      rows="2">{{ pub.publisher|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="field">
+                                            <label>Авторы</label>
+                                            <textarea name="author"
+                                                      rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                        <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
+                                        <div class="three fields">
+                                            <div class="field">
+                                                <label>Том</label>
+                                                <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Год</label>
+                                                <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif type == 'book-chapter' %}
+                                    <div id="book-chapter-form">
+                                        <div class="field">
+                                            <label>Название публикации</label>
+                                            <textarea name="title"
+                                                      rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="field">
+                                            <label>Авторы</label>
+                                            <textarea name="author"
+                                                      rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="field">
+                                            <label>Сборник</label>
+                                            <textarea name="container_title"
+                                                      rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="four fields">
+                                            <div class="field">
+                                                <label>Год</label>
+                                                <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Том</label>
+                                                <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Номер</label>
+                                                <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Страницы</label>
+                                                <input name="page" value="{{ pub.page|default_if_none:"" }}">
+                                            </div>
                                         </div>
                                     </div>
                                 {% endif %}
                                 <div class="child-center">
-                                    <button class="large ui primary button">
+                                    <button id="update-cite" class="large ui primary button">
                                         Обновить цитату
                                     </button>
                                 </div>
@@ -96,9 +161,12 @@
                             <div class="ui form">
                                 <div class="field">
                                     <label>Результат</label>
-                                    <textarea name="result" rows="6">{{ pub.get_gost }}</textarea>
+                                    <textarea name="result" rows="6"></textarea>
                                 </div>
                                 <div class="child-center">
+                                    <a id="translitbtn" class="large ui primary button">
+                                        Транслит
+                                    </a>
                                     <a onclick="copyToClipboard()" class="large ui primary button">
                                         Скопировать
                                     </a>
@@ -122,6 +190,7 @@
             var $result = $('[name=result]');
             if (type === 'book') {
                 var $publisher = $('[name=publisher]');
+                var $issue = $('[name=issue]');
             } else {
                 var $container = $('[name=container_title]');
                 var $issue = $('[name=issue]');
@@ -129,16 +198,21 @@
             }
             $('form').submit(function (e) {
                 e.preventDefault();
-                var data = $('form').serializeArray();
-                $.post({url: '{% url 'pub:save_cite' %}', data: data});
+                {% if request.user.is_authenticated %}
+                    var data = $('form').serializeArray();
+                    $.post({url: '{% url 'pub:save_cite' %}', data: data});
+                {% endif %}
             });
-            $('button').click(function () {
+            $('#update-cite').click(function () {
                 if (type === 'book')
                     $result.val(createGostBook());
                 else
                     $result.val(createGostAticle());
             });
-            {% if not pub %}
+            $('#translitbtn').click(function () {
+                $result.val(rus_to_latin($result.val()))
+            });
+            {% if not pub and doi %}
                 var interval = setInterval(checkResult, 500);
             {% endif %}
             var counter = 0;
@@ -160,18 +234,30 @@
                         $issued.val(pub['issued']);
                         $volume.val(pub['volume']);
                         if (type === 'book') {
-                            $publisher.text(pub['publisher'])
+                            $publisher.text(pub['publisher']);
+                            console.log(pub['issue'])
+                            $issue.val(pub['issue']);
+
                         } else {
                             $container.text(pub['container_title']);
                             $issue.val(pub['issue']);
                             $page.val(pub['page']);
                         }
+                        if (type === 'book')
+                            $result.val(createGostBook());
+                        else
+                            $result.val(createGostAticle());
                     }
                 })
             }
 
             function createGostAticle() {
-                var gost = `${$author.val()} ${$title.val()} // ${$container.val()}. – ${$issued.val()}.`;
+                var authors = $author.val().split(', ');
+                if (authors.length > 3)
+                    authors = authors.slice(0, 1).join(', ') + ' и др.';
+                else
+                    authors = authors.join(', ');
+                var gost = `${authors} ${$title.val()} // ${$container.val()}. – ${$issued.val()}.`;
                 if ($volume.val().length > 0)
                     gost += ` – Т. ${$volume.val()}.`;
                 if ($issue.val().length > 0)
@@ -182,8 +268,17 @@
             }
 
             function createGostBook() {
-                var gost = `${$author.val()} ${$title.val()}. – ${$publisher.val()}, – ${$issued.val()}.`
+                var authors = $author.val().split(', ');
+                if (authors.length > 3)
+                    authors = authors.slice(0, 1).join(', ') + ' и др.';
+                else
+                    authors = authors.join(', ');
+                var gost = `${authors} ${$title.val()}. – ${$publisher.val()}, – ${$issued.val()}.`;
                 return gost;
+            }
+
+            function createApaArticle() {
+
             }
         });
 
@@ -195,6 +290,33 @@
             $temp.val(text).select();
             document.execCommand("copy");
             $temp.remove();
+        }
+
+
+        function rus_to_latin(str) {
+
+            var ru = {
+                'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
+                'е': 'e', 'ё': 'e', 'ж': 'j', 'з': 'z', 'и': 'i',
+                'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+                'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh',
+                'щ': 'shch', 'ы': 'y', 'э': 'e', 'ю': 'u', 'я': 'ya'
+            }, n_str = [];
+
+            str = str.replace(/[ъь]+/g, '').replace(/й/g, 'i');
+
+            for (var i = 0; i < str.length; ++i) {
+                n_str.push(
+                    ru[str[i]]
+                    || ru[str[i].toLowerCase()] == undefined && str[i]
+                    || ru[str[i].toLowerCase()].replace(/^(.)/, function (match) {
+                        return match.toUpperCase()
+                    })
+                );
+            }
+
+            return n_str.join('');
         }
     </script>
 {% endblock %}

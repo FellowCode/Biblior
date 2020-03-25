@@ -3,11 +3,8 @@ from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render
 
 from Publications.models import Publication
-from utils.formatter import reformat
-from utils.search_query import get_search_query, search_crossref, get_publications, get_publication, get_pub_result
-from utils.shortcuts import get_client_ip
+from utils.search_query import *
 import pprint
-pp = pprint.PrettyPrinter()
 
 
 def search(request):
@@ -16,13 +13,15 @@ def search(request):
 
 def search_result(request):
     query = get_search_query(request, rows=40)
-    search_crossref(query, get_client_ip(request))
+    search_crossref(query, request.session['uid'])
+    query = get_search_query_arxiv(request, max_results=40)
+    #search_arxiv(query, request.session['uid'])
     return render(request, 'Publications/SearchResult.html', {'type': request.GET.get('search_type')})
 
 
 def ajax_pubs(request):
     if request.is_ajax():
-        result = get_publications(get_client_ip(request))
+        result = get_publications(request.session['uid'])
         if not result:
             return JsonResponse({'status': False})
         publications = []
@@ -39,19 +38,22 @@ def cite(request):
     pub_type = request.GET.get('type')
     source = request.GET.get('source', '')
     pub = None
-    if source == 'personal-area':
+    if source == 'personal-area' and request.user.is_authenticated:
         pub = Publication.objects.get_or_none(user=request.user, doi=doi)
+        if not pub:
+            get_publication(doi, request.session['uid'])
     else:
-        get_publication(doi, get_client_ip(request))
+        get_publication(doi, request.session['uid'])
     return render(request, 'Publications/Citation.html', {'type': pub_type, 'doi': doi, 'pub': pub})
 
 
 def ajax_pub(request):
     if request.is_ajax():
-        result = get_pub_result(get_client_ip(request))
+        result = get_pub_result(request.session['uid'])
         if not result:
             return JsonResponse({'status': False})
-        Publication.set_pub(request.user, result['publication']).save()
+        if request.user.is_authenticated:
+            Publication.set_pub(request.user, result['publication']).save()
         result['status'] = True
         pp.pprint(result)
         return JsonResponse(result)

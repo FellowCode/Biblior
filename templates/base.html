@@ -33,6 +33,15 @@
 <script type="text/javascript" src="{% static 'js/cookie.js' %}?version=1"></script>
 <script type="text/javascript" src="{% static 'js/jquery-3.4.1.min.js' %}?version=1"></script>
 <script type="text/javascript" src="{% static 'js/semantic.min.js' %}?version=1"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.ui.menu .item').click(function () {
+            $(this).closest('div').find('.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).closest('.menu').find('input').val($(this).attr('data-value'))
+        });
+    })
+</script>
 {% block script %}{% endblock %}
 </body>
 </html>

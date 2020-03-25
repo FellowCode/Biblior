@@ -18,6 +18,19 @@
     margin-bottom: 20px;
   }
 
+  td[data-name=doi]{
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    a{
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
   button.borderless{
     border: none;
     background-color: transparent;

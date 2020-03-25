@@ -5,7 +5,7 @@ def reformat(publication):
     fpub = {'title': publication['title'][0], 'publisher': publication.get('publisher', ''),
              'issued': publication['issued']['date-parts'][0][0], 'volume': publication.get('volume', ''),
              'type': publication['type'], 'container_title': publication.get('container-title', [''])[0], 'page': publication.get('page', ''),
-             'issue': publication.get('issue', ''), 'doi': publication['DOI']}
+             'issue': publication.get('issue', ''), 'doi': publication['DOI'], 'url': publication['URL']}
     if len(publication.get('original-title', '')) > 0:
         fpub['title'] = publication['original-title'][0]
 
@@ -35,10 +35,7 @@ def format_authors(authors):
             fauthors.append('{} {}'.format(family, initials))
     if len(rus_fauthors) > 0:
         fauthors = rus_fauthors
-    if len(fauthors) < 4:
-        return ', '.join(a for a in fauthors if len(a) > 0 and a != ' ')
-    else:
-        return fauthors[0] + ' и др.'
+    return ', '.join(a for a in fauthors if len(a) > 0 and a != ' ')
 
 
 def get_gost_article(publication):

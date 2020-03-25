@@ -10,8 +10,8 @@
                     <div class="child-center">
                         <form action="{% url 'pub:list' %}" class="ui form remove-empty-values">
                             <h2 class="ui center aligned header">Искать публикации</h2>
-                            <input type="hidden" name="search_type" value="journal-article">
-                            <div id="pub-type" class="ui three item menu">
+                            <div class="ui three item menu">
+                                <input type="hidden" name="search_type" value="journal-article">
                                 <a class="active item" data-value="journal-article">Статьи в журнале</a>
                                 <a class="item" data-value="book">Книги</a>
                                 <a class="item" data-value="book-chapter">В сборнике</a>
@@ -69,13 +69,6 @@
             var $input_search_type = $('input[name=search_type]');
             var $main_search = $('.main-search');
             var $extend_search = $('.extend-search');
-            $('.ui.menu .item').click(function () {
-                $(this).closest('div').find('.active').removeClass('active');
-                $(this).addClass('active');
-            });
-            $('#pub-type .item').click(function () {
-                $input_search_type.val($(this).attr('data-value'));
-            });
             $('#search-type .item').click(function () {
                 var search_type = $(this).attr('data-value');
                 if (search_type === 'main-search') {

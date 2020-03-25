@@ -7,12 +7,11 @@ from utils.model_manager import MyManager
 
 class Publication(models.Model):
     objects = MyManager()
-
+    # Поля таблицы публикации
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pubs')
-
     type = models.CharField(max_length=32)
-
     doi = models.CharField(max_length=32)
+    url = models.URLField(default=None, null=True)
     title = models.CharField(max_length=256)
     container_title = models.CharField(max_length=128, blank=True)
     publisher = models.CharField(max_length=128, blank=True)
@@ -21,7 +20,6 @@ class Publication(models.Model):
     volume = models.CharField(max_length=4, blank=True)
     issued = models.CharField(max_length=4)
     page = models.CharField(max_length=10, blank=True)
-
     update_dt = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -33,7 +31,7 @@ class Publication(models.Model):
         self.title = pub['title']
         self.author = pub['author']
         self.page = pub.get('page', '')
-
+        self.url = pub['url']
         self.issue = pub['issue']
         self.volume = pub['volume']
         self.issued = pub['issued']

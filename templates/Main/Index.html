@@ -9,10 +9,21 @@
                 <div class="content">
                     <h1 class="header">Biblior - онлайн создание цитат</h1>
                     <h2>Выведите ваши статьи на новый уровень</h2>
-                    <a href="{% url 'pub:search' %}" class="search-papers massive ui primary button">
-                        <i class="search icon"></i>
-                        Искать публикации
-                    </a>
+                    <div class="sixteen wide">
+                        <a href="{% url 'pub:search' %}" class="search-papers massive ui primary button">
+
+                            Искать публикации
+                            <i class="search right icon"></i>
+                        </a>
+                    </div>
+                    <div class="sixteen wide">
+                        <a href="{% url 'pub:cite' %}" class="massive ui primary button">
+
+                            Создать цитату
+                            <i class="quote right icon"></i>
+                        </a>
+                    </div>
+
 
                 </div>
             </div>

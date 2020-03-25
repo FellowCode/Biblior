@@ -21,6 +21,7 @@
                                     <th>Издатель</th>
                                 {% endif %}
                                 <th>Год</th>
+                                <th>DOI</th>
                                 <th></th>
                             </tr>
                             </thead>
@@ -30,6 +31,7 @@
                                 <td data-name="author" data-label="Авторы"></td>
                                 <td data-name="container" data-label="Журнал"></td>
                                 <td data-name="issued" data-label="Год"></td>
+                                <td data-name="doi" data-label="DOI"><a></a></td>
                                 <td data-label="">
                                     <form action="{% url 'pub:cite' %}" method="get">
                                         <input type="hidden" name="type" value="{{ type }}">
@@ -90,6 +92,7 @@
                     $item.find('td[data-name=title]').text(pub['title']);
                     $item.find('td[data-name=author]').text(pub['author']);
                     $item.find('td[data-name=issued]').text(pub['issued']);
+                    $item.find('td[data-name=doi] a').attr('href', pub['url']).text(pub['doi']);
                     var container;
                     if (pub['type'] === 'book')
                         container = pub['publisher'];

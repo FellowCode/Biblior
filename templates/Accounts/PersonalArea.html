@@ -11,7 +11,7 @@
                     <h2 class="ui center aligned header">Личный кабинет</h2>
                     <h3>{{ request.user.first_name }} {{ request.user.last_name }}</h3>
                     <div class="ui sixteen wide">
-                        <a class="medium ui primary button">
+                        <a href="{% url 'accounts:change_password' %}" class="medium ui primary button">
                             Изменить пароль
                         </a>
                     </div>

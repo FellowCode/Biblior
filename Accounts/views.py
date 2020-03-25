@@ -19,6 +19,8 @@ def login(request):
                 if request.GET.get('next'):
                     return redirect(request.GET['next'])
                 return redirect(reverse('main:index'))
+            for error in form['email'].errors:
+                print(error)
             return render(request, 'Accounts/Login.html', {'form': form})
         form = LoginForm()
         return render(request, 'Accounts/Login.html', {'form': form})
@@ -46,13 +48,26 @@ def registration(request):
                                             last_name=form.cleaned_data['last_name'])
             auth.login(request, user)
             return redirect(reverse('main:index'))
+        return render(request, 'Accounts/Registration.html', {'form': form})
     form = RegistrationForm()
     return render(request, 'Accounts/Registration.html', {'form': form})
 
 
+@login_required
 def personal_area(request):
     return render(request, 'Accounts/PersonalArea.html')
 
 
+@login_required
 def change_password(request):
-    pass
+    if not request.method == 'POST':
+        form = ChangePasswordForm(user=request.user)
+        return render(request, 'Accounts/ChangePassword.html', {'form': form})
+    # POST
+    form = ChangePasswordForm(request.POST, user=request.user)
+    if form.is_valid():
+        request.user.set_password(form.cleaned_data['spassword'])
+        request.user.save()
+        auth.login(request, request.user)
+        return redirect(reverse('accounts:personal_area'))
+    return render(request, 'Accounts/ChangePassword.html', {'form': form})
