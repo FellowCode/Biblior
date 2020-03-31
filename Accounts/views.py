@@ -8,6 +8,8 @@ from django.urls import reverse
 from .forms import *
 from django.contrib import auth
 from django.conf import settings
+from django.db.models import Q
+import re
 
 
 def login(request):
@@ -29,7 +31,7 @@ def login(request):
 
 def admin_login(request):
     p = urllib.parse.urlencode(request.GET)
-    return redirect(f'{settings.LOGIN_URL}?'+p)
+    return redirect(f'{settings.LOGIN_URL}?' + p)
 
 
 @login_required
@@ -55,7 +57,22 @@ def registration(request):
 
 @login_required
 def personal_area(request):
-    return render(request, 'Accounts/PersonalArea.html')
+    query = request.GET.get('query')
+    if query:
+        query = re.sub(' +', ' ', query)
+        words = query.split(' ')
+        pubs = None
+        for word in words:
+            qs = request.user.pubs.filter(Q(title__icontains=word) | Q(container_title__icontains=word)
+                                          | Q(author__icontains=word) | Q(issued__icontains=word) |
+                                          Q(issue__icontains=word) | Q(volume__icontains=word)).all()
+            if not pubs:
+                pubs = qs
+            else:
+                pubs.union(qs)
+    else:
+        pubs = request.user.pubs.all()
+    return render(request, 'Accounts/PersonalArea.html', {'pubs': pubs, 'query': query})
 
 
 @login_required

@@ -40,18 +40,23 @@ class Publication(models.Model):
         self.publisher = pub.get('publisher', '')
         return self
 
-    def get_gost(self):
+    def to_dict(self):
         pub = {
+            'doi': self.doi,
             'type': self.type,
             'title': self.title,
             'container_title': self.container_title,
             'author': self.author,
             'page': self.page,
             'publisher': self.publisher,
-            'issue': str(self.issue),
-            'issued': str(self.issued),
-            'volume': str(self.volume),
+            'issue': self.issue,
+            'issued': self.issued,
+            'volume': self.volume,
         }
+        return pub
+
+    def get_gost(self):
+        pub = self.to_dict()
         if self.type == 'book':
             return get_gost_book(pub)
         return get_gost_article(pub)

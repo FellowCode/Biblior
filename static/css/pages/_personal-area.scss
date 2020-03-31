@@ -6,4 +6,18 @@
     cursor: pointer;
     font-size: 1.3rem;
   }
+
+  .field{
+    padding-right: 46px;
+  }
+  button.icon{
+    position: absolute;
+    top: 24px;
+    right: 0;
+    font-size: 1.2rem;
+  }
+
+  #pubs-history{
+    margin-top: 15px;
+  }
 }

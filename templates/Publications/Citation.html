@@ -27,9 +27,11 @@
                             {% endif %}
                             <div id="pub_type" class="ui three item menu">
                                 <input type="hidden" name="pub_type" value="journal-article">
-                                <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item" data-value="journal-article">Статья</a>
+                                <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item"
+                                   data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
-                                <a class="{% if type == 'book-chapter' %}active{% endif %} item" data-value="book-chapter">В сборнике</a>
+                                <a class="{% if type == 'book-chapter' %}active{% endif %} item"
+                                   data-value="book-chapter">В сборнике</a>
                             </div>
                             <div data-input-name="cite_template" class="ui four item menu">
                                 <input type="hidden" name="cite_template" value="gost">
@@ -38,7 +40,8 @@
                                 <a class="item" data-value="harvard">Harvard</a>
                                 <a class="item" data-value="ieee">ieee</a>
                             </div>
-                            <form action="" class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %}">
+                            <form action=""
+                                  class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="type" value="{{ type }}">
                                 <input type="hidden" name="doi" value="{{ doi }}">
@@ -50,16 +53,25 @@
                                     </ul>
                                 </div>
                                 {% if type == 'journal-article' or not type and not doi %}
+                                    <input type="hidden" name="publisher"
+                                           value="{{ pub.publisher|default_if_none:"" }}">
                                     <div id="journal-article-form">
                                         <div class="field">
                                             <label>Название публикации</label>
                                             <textarea name="title"
                                                       rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="toSentence">Как в предложении</a>
+                                            </div>
                                         </div>
+
                                         <div class="field">
                                             <label>Авторы</label>
                                             <textarea name="author"
                                                       rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
                                         </div>
                                         <div class="field">
                                             <label>Журнал</label>
@@ -86,11 +98,16 @@
                                         </div>
                                     </div>
                                 {% elif type == "book" %}
+                                    <input type="hidden" name="container_title"
+                                           value="{{ pub.container_title|default_if_none:"" }}">
                                     <div id="book-form">
                                         <div class="field">
                                             <label>Название книги</label>
                                             <textarea name="title"
                                                       rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="toSentence">Как в предложении</a>
+                                            </div>
                                         </div>
                                         <div class="field">
                                             <label>Издатель</label>
@@ -101,6 +118,9 @@
                                             <label>Авторы</label>
                                             <textarea name="author"
                                                       rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
                                         </div>
                                         <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
                                         <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
@@ -116,16 +136,24 @@
                                         </div>
                                     </div>
                                 {% elif type == 'book-chapter' %}
+                                    <input type="hidden" name="publisher"
+                                           value="{{ pub.publisher|default_if_none:"" }}">
                                     <div id="book-chapter-form">
                                         <div class="field">
                                             <label>Название публикации</label>
                                             <textarea name="title"
                                                       rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="toSentence">Как в предложении</a>
+                                            </div>
                                         </div>
                                         <div class="field">
                                             <label>Авторы</label>
                                             <textarea name="author"
                                                       rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
                                         </div>
                                         <div class="field">
                                             <label>Сборник</label>
@@ -188,15 +216,33 @@
             var $issued = $('[name=issued]');
             var $volume = $('[name=volume]');
             var $result = $('[name=result]');
-            if (type === 'book') {
-                var $publisher = $('[name=publisher]');
-                var $issue = $('[name=issue]');
-            } else {
-                var $container = $('[name=container_title]');
-                var $issue = $('[name=issue]');
-                var $page = $('[name=page]');
-            }
+            var $publisher = $('[name=publisher]');
+            var $issue = $('[name=issue]');
+            var $container = $('[name=container_title]');
+            var $page = $('[name=page]');
             setupChangePubType();
+
+            $('.ui.menu .item').click(function () {
+                updateCite();
+            });
+
+            $('#toSentence').click(function () {
+                var title = $title.val().toLowerCase();
+                title = title[0].toUpperCase() + title.slice(1);
+                $title.val(title);
+            });
+
+            $('#fixRegistr').click(function () {
+                var authors = $author.val().split(', ');
+                authors.forEach(function (v, i, a) {
+                    var parts = v.split(' ');
+                    parts[0] = parts[0][0].toUpperCase() + parts[0].slice(1).toLowerCase();
+                    parts[1] = parts[1].toUpperCase();
+                    a[i] = parts.join(' ');
+                });
+
+                $author.val(authors.join(', '));
+            });
 
             // Сохранение цитаты если авторизован
             $('form').submit(function (e) {
@@ -207,10 +253,7 @@
                 {% endif %}
             });
             $('#update-cite').click(function () {
-                if (type === 'book')
-                    $result.val(createGostBook());
-                else
-                    $result.val(createGostAticle());
+                updateCite();
             });
             // Транслит
             $('#translitbtn').click(function () {
@@ -239,52 +282,21 @@
                         $author.text(pub['author']);
                         $issued.val(pub['issued']);
                         $volume.val(pub['volume']);
-                        if (type === 'book') {
-                            $publisher.text(pub['publisher']);
-                            console.log(pub['issue'])
-                            $issue.val(pub['issue']);
-
-                        } else {
-                            $container.text(pub['container_title']);
-                            $issue.val(pub['issue']);
-                            $page.val(pub['page']);
-                        }
-                        if (type === 'book')
-                            $result.val(createGostBook());
-                        else
-                            $result.val(createGostAticle());
+                        $publisher.text(pub['publisher']);
+                        $issue.val(pub['issue']);
+                        $container.text(pub['container_title']);
+                        $page.val(pub['page']);
+                        updateCite();
                     }
                 })
             }
 
-            function createGostAticle() {
-                var authors = $author.val().split(', ');
-                if (authors.length > 3)
-                    authors = authors.slice(0, 1).join(', ') + ' и др.';
-                else
-                    authors = authors.join(', ');
-                var gost = `${authors} ${$title.val()} // ${$container.val()}. – ${$issued.val()}.`;
-                if ($volume.val().length > 0)
-                    gost += ` – Т. ${$volume.val()}.`;
-                if ($issue.val().length > 0)
-                    gost += ` – №. ${$issue.val()}.`;
-                if ($page.val().length > 0)
-                    gost += ` – С. ${$page.val().replace('-', '–')}.`;
-                return gost
-            }
+            function updateCite() {
+                var cite_template = $('input[name=cite_template]').val();
 
-            function createGostBook() {
-                var authors = $author.val().split(', ');
-                if (authors.length > 3)
-                    authors = authors.slice(0, 1).join(', ') + ' и др.';
-                else
-                    authors = authors.join(', ');
-                var gost = `${authors} ${$title.val()}. – ${$publisher.val()}, – ${$issued.val()}.`;
-                return gost;
-            }
-
-            function createApaArticle() {
-
+                $result.val(cite_formatter[cite_template][type]($author.val(),
+                    $title.val(), $container.val(), $issued.val(), $volume.val(),
+                    $issue.val(), $page.val(), $publisher.val()))
             }
         });
 
@@ -297,7 +309,7 @@
             document.execCommand("copy");
             $temp.remove();
         }
-        
+
         function setupChangePubType() {
             // Смена типа публикации
             $('#pub_type .item').click(function () {
@@ -309,9 +321,9 @@
                     var end = url.indexOf('&', start);
                     if (end < 0)
                         end = url.length;
-                    url = url.replace(url.substr(start, end-start), $(this).attr('data-value'));
-                }else
-                    url+='?type='+$(this).attr('data-value');
+                    url = url.replace(url.substr(start, end - start), $(this).attr('data-value'));
+                } else
+                    url += '?type=' + $(this).attr('data-value');
                 $form.load(url + ' form', data);
                 window.history.replaceState(null, null, url);
                 //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
