@@ -8,6 +8,8 @@ from django.urls import reverse
 from Publications.models import Publication
 from utils.search_query import *
 import pprint
+from urllib.parse import unquote
+import json
 
 
 def search(request):
@@ -83,3 +85,10 @@ def save_cite(request):
             Publication.set_pub(request.user, pub).save()
             return HttpResponse()
     raise Http404
+
+
+def group_cite(request):
+    sel_cites = list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites')))))
+    pubs = Publication.objects.filter(user=request.user, id__in=sel_cites).all()
+
+    return render(request, 'Publications/GroupCitation.html', {'pubs': pubs})

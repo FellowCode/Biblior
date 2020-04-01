@@ -10,6 +10,8 @@ from django.contrib import auth
 from django.conf import settings
 from django.db.models import Q
 import re
+from urllib.parse import unquote
+import json
 
 
 def login(request):
@@ -58,6 +60,9 @@ def registration(request):
 @login_required
 def personal_area(request):
     query = request.GET.get('query')
+
+    sel_cites = list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites')))))
+
     if query:
         query = re.sub(' +', ' ', query)
         words = query.split(' ')
@@ -72,7 +77,7 @@ def personal_area(request):
                 pubs.union(qs)
     else:
         pubs = request.user.pubs.all()
-    return render(request, 'Accounts/PersonalArea.html', {'pubs': pubs, 'query': query})
+    return render(request, 'Accounts/PersonalArea.html', {'pubs': pubs, 'query': query, 'sel_cites': sel_cites})
 
 
 @login_required

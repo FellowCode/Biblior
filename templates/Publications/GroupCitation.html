@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Biblior{% endblock %}
+
+{% block content %}
+    <div class="ui container">
+        <div class="child-center">
+            <div class="group-citation cblock">
+                <div class="content">
+                    <h1 class="ui center aligned header">Цитаты</h1>
+                    <div data-input-name="cite_template" class="ui four item menu">
+                        <input type="hidden" name="cite_template" value="gost">
+                        <a class="active item" data-value="gost">ГОСТ 2008</a>
+                        <a class="item" data-value="apa">APA</a>
+                        <a class="item" data-value="harvard">Harvard</a>
+                        <a class="item" data-value="ieee">ieee</a>
+                    </div>
+                    <div class="inline field">
+                        <div class="ui toggle checkbox">
+                            <input type="checkbox" tabindex="0" class="hidden">
+                            <label>Нумерация</label>
+                        </div>
+                    </div>
+                    <a id="translit" class="ui button primary">Транслит</a>
+                    <a id="copy" class="ui button primary">Скопировать</a>
+                    <div id="cites" class="sixteen wide">
+                        {% for pub in pubs %}
+                            <p>
+                                {% for key, value in pub.to_dict.items %}
+                                    <meta name="{{ key }}" content="{{ value }}">
+                                {% endfor %}
+                                <a href="{% url 'pub:cite' %}?type={{ pub.type }}&doi={{ pub.doi }}"></a>
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var $cites = $('#cites p');
+            var numberic = false;
+
+            $('.ui.menu .item').click(function () {
+                updateCites();
+            });
+            updateCites();
+
+            $('.ui.checkbox').checkbox().click(function () {
+                numberic = $(this).hasClass('checked');
+                updateCites();
+            });
+
+            $('#translit').click(function () {
+                $cites.find('span').each(function () {
+                    $(this).text(rus_to_latin($(this).text()))
+                });
+            });
+            $('#copy').click(function () {
+                copyToClipboard();
+            });
+
+            function updateCites() {
+
+                var cite_template = $('input[name=cite_template]').val();
+                $cites.each(function (index) {
+                    var type = $(this).find('meta[name=type]').attr('content');
+                    var title = $(this).find('meta[name=title]').attr('content');
+                    var author = $(this).find('meta[name=author]').attr('content');
+                    var container_title = $(this).find('meta[name=container_title]').attr('content');
+                    var publisher = $(this).find('meta[name=publisher]').attr('content');
+                    var issued = $(this).find('meta[name=issued]').attr('content');
+                    var issue = $(this).find('meta[name=issue]').attr('content');
+                    var volume = $(this).find('meta[name=volume]').attr('content');
+                    var page = $(this).find('meta[name=page]').attr('content');
+                    if (numberic)
+                        $(this).find('a').text(`${(index + 1)}. ` + cite_formatter[cite_template][type](author, title, container_title, issued, volume, issue, page, publisher));
+                    else
+                        $(this).find('a').text(cite_formatter[cite_template][type](author, title, container_title, issued, volume, issue, page, publisher))
+                });
+            }
+
+            function copyToClipboard() {
+                var text = '';
+                $cites.find('a').each(function () {
+                    text += $(this).text() + '\n'
+                });
+                var $temp = $("<textarea>");
+                $("body").append($temp);
+                $temp.val(text).select();
+                document.execCommand("copy");
+                $temp.remove();
+            }
+        })
+    </script>
+{% endblock %}
