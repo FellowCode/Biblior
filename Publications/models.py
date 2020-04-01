@@ -10,7 +10,7 @@ class Publication(models.Model):
     # Поля таблицы публикации
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pubs')
     type = models.CharField(max_length=32)
-    doi = models.CharField(max_length=32)
+    doi = models.CharField(max_length=64)
     url = models.URLField(default=None, null=True)
     title = models.CharField(max_length=256)
     container_title = models.CharField(max_length=128, blank=True)

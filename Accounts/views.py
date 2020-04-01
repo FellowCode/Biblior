@@ -60,8 +60,10 @@ def registration(request):
 @login_required
 def personal_area(request):
     query = request.GET.get('query')
-
-    sel_cites = list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites')))))
+    if request.COOKIES.get('selected_cites'):
+        sel_cites = list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites')))))
+    else:
+        sel_cites = None
 
     if query:
         query = re.sub(' +', ' ', query)
