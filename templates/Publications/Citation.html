@@ -16,24 +16,27 @@
                                        target="_blank">Найти в
                                         Google Scholar</a>
                                 </div>
-                            {% endif %}
-                            {% if not pub and doi %}
-                                <div id="loader">
-                                    <div class="ui active inverted dimmer">
-                                        <div class="ui medium text loader">Публикация загружается...</div>
-                                    </div>
-                                    <p></p>
+                                <div class="ui sixteen wide scholar-link">
+                                    <a href="http://dx.doi.org/{{ doi }}" target="_blank">Открыть оригинал статьи</a>
                                 </div>
                             {% endif %}
-                            <div id="pub_type" class="ui three item menu">
+
+                            <div id="loader" {% if not pub and doi %}{% else %}class="hide"{% endif %}>
+                                <div class="ui active inverted dimmer">
+                                    <div class="ui medium text loader">Загрузка...</div>
+                                </div>
+                                <p></p>
+                            </div>
+                            <div id="pub_type" class="ui four item menu">
                                 <input type="hidden" name="pub_type" value="journal-article">
                                 <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item"
                                    data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
                                 <a class="{% if type == 'book-chapter' %}active{% endif %} item"
                                    data-value="book-chapter">В сборнике</a>
+                                <a class="{% if type == 'web' %}active{% endif %} item" data-value="web">Web ресурс</a>
                             </div>
-                            <div data-input-name="cite_template" class="ui four item menu">
+                            <div id="cite_template" data-input-name="cite_template" class="ui four item menu">
                                 <input type="hidden" name="cite_template" value="gost">
                                 <a class="active item" data-value="gost">ГОСТ 2008</a>
                                 <a class="item" data-value="apa">APA</a>
@@ -41,7 +44,7 @@
                                 <a class="item" data-value="ieee">ieee</a>
                             </div>
                             <form action=""
-                                  class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %}">
+                                  class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %} error">
                                 {% csrf_token %}
                                 <input type="hidden" name="type" value="{{ type }}">
                                 <input type="hidden" name="doi" value="{{ doi }}">
@@ -55,6 +58,8 @@
                                 {% if type == 'journal-article' or not type and not doi %}
                                     <input type="hidden" name="publisher"
                                            value="{{ pub.publisher|default_if_none:"" }}">
+                                    <input type="hidden" name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
+                                    <input type="hidden" name="url" value="{{ pub.url|default_if_none:"" }}">
                                     <div id="journal-article-form">
                                         <div class="field">
                                             <label>Название публикации</label>
@@ -71,6 +76,10 @@
                                                       rows="2">{{ pub.author|default_if_none:"" }}</textarea>
                                             <div class="sixteen wide">
                                                 <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
+                                            <div id="author-error" class="ui error message hide">
+                                                <div class="header">Ошибка</div>
+                                                <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
                                             </div>
                                         </div>
                                         <div class="field">
@@ -100,6 +109,8 @@
                                 {% elif type == "book" %}
                                     <input type="hidden" name="container_title"
                                            value="{{ pub.container_title|default_if_none:"" }}">
+                                    <input type="hidden" name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
+                                    <input type="hidden" name="url" value="{{ pub.url|default_if_none:"" }}">
                                     <div id="book-form">
                                         <div class="field">
                                             <label>Название книги</label>
@@ -121,6 +132,10 @@
                                             <div class="sixteen wide">
                                                 <a id="fixRegistr">Исправить регистр</a>
                                             </div>
+                                            <div id="author-error" class="ui error message hide">
+                                                <div class="header">Ошибка</div>
+                                                <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
+                                            </div>
                                         </div>
                                         <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
                                         <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
@@ -138,6 +153,8 @@
                                 {% elif type == 'book-chapter' %}
                                     <input type="hidden" name="publisher"
                                            value="{{ pub.publisher|default_if_none:"" }}">
+                                    <input type="hidden" name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
+                                    <input type="hidden" name="url" value="{{ pub.url|default_if_none:"" }}">
                                     <div id="book-chapter-form">
                                         <div class="field">
                                             <label>Название публикации</label>
@@ -153,6 +170,10 @@
                                                       rows="2">{{ pub.author|default_if_none:"" }}</textarea>
                                             <div class="sixteen wide">
                                                 <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
+                                            <div id="author-error" class="ui error message hide">
+                                                <div class="header">Ошибка</div>
+                                                <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
                                             </div>
                                         </div>
                                         <div class="field">
@@ -177,6 +198,51 @@
                                                 <label>Страницы</label>
                                                 <input name="page" value="{{ pub.page|default_if_none:"" }}">
                                             </div>
+                                        </div>
+                                    </div>
+                                {% elif type == 'web' %}
+                                    <input type="hidden" name="container_title"
+                                           value="{{ pub.container_title|default_if_none:"" }}">
+                                    <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
+                                    <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
+                                    <input type="hidden" name="volume" value="{{ pub.volume|default_if_none:"" }}">
+                                    <div id="web">
+                                        <div class="field">
+                                            <label>Название статьи</label>
+                                            <textarea name="title"
+                                                      rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="toSentence">Как в предложении</a>
+                                            </div>
+                                        </div>
+                                        <div data-show="apa,ieee,harvard" class="field hide hide-manage">
+                                            <label>Авторы</label>
+                                            <textarea name="author"
+                                                      rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+                                            <div class="sixteen wide">
+                                                <a id="fixRegistr">Исправить регистр</a>
+                                            </div>
+                                            <div id="author-error" class="ui error message hide">
+                                                <div class="header">Ошибка</div>
+                                                <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
+                                            </div>
+                                        </div>
+                                        <div data-show="gost" class="field hide-manage">
+                                            <label>Название сайта</label>
+                                            <textarea name="publisher"
+                                                      rows="1">{{ pub.publisher|default_if_none:"" }}</textarea>
+                                        </div>
+                                        <div class="field">
+                                            <label>Ссылка</label>
+                                            <input name="url" value="{{ pub.url|default_if_none:"" }}">
+                                        </div>
+                                        <div data-show="ieee,harvard" class="field hide hide-manage">
+                                            <label>Год публикации</label>
+                                            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Дата обращения</label>
+                                            <input name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
                                         </div>
                                     </div>
                                 {% endif %}
@@ -211,19 +277,57 @@
     <script type="text/javascript">
         $(document).ready(function () {
             var type = '{{ type }}';
-            var $title = $('[name=title]');
-            var $author = $('[name=author]');
-            var $issued = $('[name=issued]');
-            var $volume = $('[name=volume]');
-            var $result = $('[name=result]');
-            var $publisher = $('[name=publisher]');
-            var $issue = $('[name=issue]');
-            var $container = $('[name=container_title]');
-            var $page = $('[name=page]');
+            var $title, $author, $issued, $volume, $result, $publisher, $issue, $container, $page, $accessed,
+                $url;
+            setupForm();
             setupChangePubType();
 
-            $('.ui.menu .item').click(function () {
+            var $author_error = $('#author-error');
+
+            function setupForm() {
+
+                $title = $('[name=title]');
+                $author = $('[name=author]');
+                $issued = $('[name=issued]');
+                $volume = $('[name=volume]');
+                $result = $('[name=result]');
+                $publisher = $('[name=publisher]');
+                $issue = $('[name=issue]');
+                $container = $('[name=container_title]');
+                $page = $('[name=page]');
+                $accessed = $('input[name=accessed]');
+                $url = $('input[name=url]');
+
+                $author.on('keyup', function () {
+                    checkAuthor();
+                });
+                updateDate();
+
+                // Сохранение цитаты если авторизован
+                $('form').submit(function (e) {
+                    e.preventDefault();
+                    {% if request.user.is_authenticated %}
+                        var data = $('form').serializeArray();
+                        $.post({url: '{% url 'pub:save_cite' %}', data: data});
+                    {% endif %}
+                });
+                $('#update-cite').click(function () {
+                    updateCite();
+                });
+            }
+
+
+            $('#cite_template .item').click(function () {
+                var template = $(this).closest('div').find('input').val();
+                $('.hide-manage').each(function (index) {
+                    if ($(this).attr('data-show').includes(template)) {
+                        $(this).removeClass('hide');
+                    } else {
+                        $(this).addClass('hide');
+                    }
+                });
                 updateCite();
+
             });
 
             $('#toSentence').click(function () {
@@ -244,17 +348,6 @@
                 $author.val(authors.join(', '));
             });
 
-            // Сохранение цитаты если авторизован
-            $('form').submit(function (e) {
-                e.preventDefault();
-                {% if request.user.is_authenticated %}
-                    var data = $('form').serializeArray();
-                    $.post({url: '{% url 'pub:save_cite' %}', data: data});
-                {% endif %}
-            });
-            $('#update-cite').click(function () {
-                updateCite();
-            });
             // Транслит
             $('#translitbtn').click(function () {
                 $result.val(rus_to_latin($result.val()))
@@ -293,11 +386,57 @@
 
             function updateCite() {
                 var cite_template = $('input[name=cite_template]').val();
-
                 $result.val(cite_formatter[cite_template][type]($author.val(),
                     $title.val(), $container.val(), $issued.val(), $volume.val(),
-                    $issue.val(), $page.val(), $publisher.val()))
+                    $issue.val(), $page.val(), $publisher.val(), $url.val(), $accessed.val()))
             }
+
+            function checkAuthor() {
+                var author = formatAuthor($author.val());
+                var regex = /^\p{Lu}\p{Ll}+\s(\p{Lu}\.){0,3}(,\s\p{Lu}\p{Ll}+\s(\p{Lu}\.){0,3})*$/u;
+                if (regex.test(author))
+                    $author_error.addClass('hide');
+                else
+                    $author_error.removeClass('hide');
+            }
+
+            function updateDate() {
+                // Установка текущей даты в Дату обращения
+                var now = new Date();
+                const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(now);
+                const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(now);
+                const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(now);
+                if (type === 'web' && $accessed.val().length === 0)
+                    $accessed.val(`${da}.${mo}.${ye}`);
+            }
+
+            function setupChangePubType() {
+                // Смена типа публикации
+                $('#pub_type .item').click(function () {
+                    var $form = $('form');
+                    var data = $form.serializeArray();
+                    var url = window.location.toString();
+                    if (url.includes('type')) {
+                        var start = url.indexOf('type=') + 5;
+                        var end = url.indexOf('&', start);
+                        if (end < 0)
+                            end = url.length;
+                        url = url.replace(url.substr(start, end - start), $(this).attr('data-value'));
+                    } else
+                        url += '?type=' + $(this).attr('data-value');
+                    type = $(this).attr('data-value');
+                    /*window.location = url;
+                    $('#loader').removeClass('hide');*/
+                    $form.load(url + ' form', data, function () {
+
+                        setupForm();
+                    });
+                    window.history.replaceState(null, null, url);
+                    //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
+                });
+            }
+
+
         });
 
 
@@ -310,25 +449,6 @@
             $temp.remove();
         }
 
-        function setupChangePubType() {
-            // Смена типа публикации
-            $('#pub_type .item').click(function () {
-                var $form = $('form');
-                var data = $form.serializeArray();
-                var url = window.location.toString();
-                if (url.includes('type')) {
-                    var start = url.indexOf('type=') + 5;
-                    var end = url.indexOf('&', start);
-                    if (end < 0)
-                        end = url.length;
-                    url = url.replace(url.substr(start, end - start), $(this).attr('data-value'));
-                } else
-                    url += '?type=' + $(this).attr('data-value');
-                $form.load(url + ' form', data);
-                window.history.replaceState(null, null, url);
-                //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
-            });
-        }
 
     </script>
 {% endblock %}
