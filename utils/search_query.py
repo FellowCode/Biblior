@@ -30,7 +30,7 @@ def get_search_query(request, rows=20):
             query += f'&query={title}'
         authors = request.GET.get('query_authors')
         if authors:
-            query += f'&query.authors={authors}'
+            query += f'&query.author={authors}'
         query_container = request.GET.get('query_container')
         if query_container:
             query += f'&query.container-title={query_container}'

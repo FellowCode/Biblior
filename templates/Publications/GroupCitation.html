@@ -55,7 +55,8 @@
             });
 
             $('#translit').click(function () {
-                $cites.find('span').each(function () {
+                $cites.find('a').each(function () {
+                    console.log($(this))
                     $(this).text(rus_to_latin($(this).text()))
                 });
             });
