@@ -27,7 +27,12 @@ class Publication(models.Model):
 
     @staticmethod
     def set_pub(user, pub):
-        self = Publication.objects.get_or_new(user=user, doi=pub['doi'])
+        if pub.get('doi'):
+            self = Publication.objects.get_or_new(user=user, doi=pub['doi'])
+        elif pub.get('id'):
+            self = Publication.objects.get_or_new(user=user, id=pub.get('id'))
+        else:
+            self = Publication(user=user)
         self.title = pub['title']
         self.author = pub['author']
         self.page = pub.get('page', '')

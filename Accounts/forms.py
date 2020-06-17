@@ -39,7 +39,7 @@ class RegistrationForm(forms.Form):
     def clean_fpassword(self):
         password = self.cleaned_data['fpassword']
         if len(password) < 8:
-            self.add_error("fpassword", "Не менее 8 сиволов")
+            self.add_error("fpassword", "Не менее 8 символов")
         if ';' in password:
             self.add_error("fpassword", "Недопустимый символ в пароле")
         return password

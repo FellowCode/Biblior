@@ -65,7 +65,7 @@
                                                 <td data-type="gost">{{ pub.get_gost }}</td>
                                                 <td><a data-type="copybtn"><i class="copy right icon"></i></a></td>
                                                 <td>
-                                                    <a href="{% url 'pub:cite' %}?type={{ pub.type }}&doi={{ pub.doi }}&source=personal-area"><i
+                                                    <a href="{% url 'pub:cite' %}?{% if pub.type %}type={{ pub.type }}&{% endif %}{% if pub.doi %}doi={{ pub.doi }}&{% endif %}pub_id={{ pub.id }}&source=personal-area"><i
                                                             class="edit right icon"></i></a></td>
                                                 <td>
                                                     <div data-id="{{ pub.id }}"

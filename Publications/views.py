@@ -17,11 +17,22 @@ def search(request):
 
 
 def search_result(request):
-    query = get_search_query(request, rows=40)
+    if request.GET.get('doi'):
+        return redirect('/publication/?doi='+urllib.parse.quote(request.GET.get('doi')))
+    query = get_search_query(request, rows=60)
     search_crossref(query, request.session['uid'])
-    query = get_search_query_arxiv(request, max_results=40)
-    #search_arxiv(query, request.session['uid'])
-    return render(request, 'Publications/SearchResult.html', {'type': request.GET.get('search_type')})
+    if request.GET.get('query_bibliographic'):
+        search_query = 'Слова: ' + ', '.join(request.GET.get('query_bibliographic').split(' '))
+    else:
+        search_fields = []
+        if request.GET.get('query_title'):
+            search_fields.append('Название: '+request.GET.get('query_title'))
+        if request.GET.get('query_authors'):
+            search_fields.append('Авторы: ' + request.GET.get('query_authors'))
+        if request.GET.get('query_container'):
+            search_fields.append('Журнал/Сборник: ' + request.GET.get('query_container'))
+        search_query = ', '.join(search_fields)
+    return render(request, 'Publications/SearchResult.html', {'type': request.GET.get('search_type'), 'search_query': search_query})
 
 
 def ajax_pubs(request):
@@ -41,6 +52,7 @@ def ajax_pubs(request):
 def cite(request):
     doi = request.GET.get('doi')
     pub_type = request.GET.get('type')
+    pub_id = request.GET.get('pub_id')
     source = request.GET.get('source', '')
     if request.method == 'POST':
         pub = dict(request.POST)
@@ -48,10 +60,13 @@ def cite(request):
             pub[key] = value[0]
     else:
         pub = None
-    data = {'type': pub_type, 'doi': doi, 'pub': pub}
-    if not pub and doi:
+    data = {'type': pub_type, 'doi': doi, 'pub': pub, 'pub_id': pub_id}
+    if not pub and (pub_id or doi):
         if source == 'personal-area' and request.user.is_authenticated:
-            pub = Publication.objects.get_or_none(user=request.user, doi=doi)
+            if pub_id:
+                pub = Publication.objects.get_or_none(user=request.user, id=pub_id)
+            else:
+                pub = Publication.objects.get_or_none(user=request.user, doi=doi)
             if pub:
                 data['custom'] = True
                 data['pub'] = pub

@@ -28,7 +28,7 @@
                                 <p></p>
                             </div>
                             <div id="pub_type" class="ui four item menu">
-                                <input type="hidden" name="pub_type" value="journal-article">
+                                <input type="hidden" name="pub_type" value="{% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
                                 <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item"
                                    data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
@@ -46,8 +46,9 @@
                             <form action=""
                                   class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %} error">
                                 {% csrf_token %}
-                                <input type="hidden" name="type" value="{{ type }}">
-                                <input type="hidden" name="doi" value="{{ doi }}">
+                                <input type="hidden" name="type" value="{% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
+                                <input type="hidden" name="id" {% if pub_id %}value="{{ pub_id }}"{% endif %}>
+                                <input type="hidden" name="doi" {% if doi %}value="{{ doi }}"{% endif %}>
                                 <div class="ui warning message">
                                     <div class="header">Это редактированная версия публикации.</div>
                                     <ul class="list">
@@ -261,7 +262,7 @@
                                     <a id="translitbtn" class="large ui primary button">
                                         Транслит
                                     </a>
-                                    <a onclick="copyToClipboard()" class="large ui primary button">
+                                    <a id="copy-btn" onclick="copyToClipboard()" class="large ui primary button">
                                         Скопировать
                                     </a>
                                 </div>
@@ -276,7 +277,8 @@
 {% block script %}
     <script type="text/javascript">
         $(document).ready(function () {
-            var type = '{{ type|default_if_none:'journal-article' }}';
+            var type = $('input[name=pub_type]').val()
+            var doi = '{{ doi }}'
             var $title, $author, $issued, $volume, $result, $publisher, $issue, $container, $page, $accessed,
                 $url;
             setupForm();
@@ -372,6 +374,10 @@
                         clearInterval(interval);
                         $result.text(data['gost']);
                         var pub = data['publication'];
+                        if (pub['type'] !== type) {
+                            console.log('aa')
+                            window.location.href = `/publication/?doi=${doi}&type=${pub['type']}`
+                        }
                         $title.text(pub['title']);
                         $author.text(pub['author']);
                         $issued.val(pub['issued']);
@@ -386,6 +392,7 @@
             }
 
             function updateCite() {
+                type = $('input[name=pub_type]').val()
                 var cite_template = $('input[name=cite_template]').val();
                 $result.val(cite_formatter[cite_template][type]($author.val(),
                     $title.val(), $container.val(), $issued.val(), $volume.val(),
@@ -411,38 +418,49 @@
                     $accessed.val(`${da}.${mo}.${ye}`);
             }
 
+            function changePubType(type) {
+                var $form = $('form');
+                var data = $form.serializeArray();
+                var url = window.location.toString();
+                if (url.includes('type')) {
+                    var start = url.indexOf('type=') + 5;
+                    var end = url.indexOf('&', start);
+                    if (end < 0)
+                        end = url.length;
+                    url = url.replace(url.substr(start, end - start), type);
+                } else {
+                    if (url.includes('?'))
+                        url += '&type=' + type;
+                    else
+                        url += '?type=' + type;
+                }
+                type = $(this).attr('data-value');
+                /*window.location = url;
+                $('#loader').removeClass('hide');*/
+                $form.load(url + ' form', data, function () {
+
+                    setupForm();
+                    updateCite()
+                });
+                window.history.replaceState(null, null, url);
+                //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
+            }
+
             function setupChangePubType() {
                 // Смена типа публикации
                 $('#pub_type .item').click(function () {
-                    var $form = $('form');
-                    var data = $form.serializeArray();
-                    var url = window.location.toString();
-                    if (url.includes('type')) {
-                        var start = url.indexOf('type=') + 5;
-                        var end = url.indexOf('&', start);
-                        if (end < 0)
-                            end = url.length;
-                        url = url.replace(url.substr(start, end - start), $(this).attr('data-value'));
-                    } else
-                        url += '?type=' + $(this).attr('data-value');
-                    type = $(this).attr('data-value');
-                    /*window.location = url;
-                    $('#loader').removeClass('hide');*/
-                    $form.load(url + ' form', data, function () {
-
-                        setupForm();
-                    });
-                    window.history.replaceState(null, null, url);
-                    //$.post({url: '{% url 'pub:cite' %}?change-to=' + $(this).attr('data-value'), data: data});
+                    changePubType($(this).attr('data-value'))
                 });
             }
-
-
+            {% if pub_id %}
+                updateCite()
+            {% endif %}
         });
 
 
         function copyToClipboard() {
-            var text = $('[name=result]').text();
+            var text = $('textarea[name=result]').val();
+            console.log(text)
             var $temp = $("<input>");
             $("body").append($temp);
             $temp.val(text).select();

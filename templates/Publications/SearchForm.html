@@ -10,16 +10,18 @@
                     <div class="child-center">
                         <form action="{% url 'pub:list' %}" class="ui form remove-empty-values">
                             <h2 class="ui center aligned header">Искать публикации</h2>
-                            <h4 class="ui center aligned header">Поиск осуществляется по публикациям у которых есть DOI</h4>
+                            <h4 class="ui center aligned header">Поиск осуществляется по публикациям у которых есть
+                                DOI</h4>
                             <div class="ui three item menu">
                                 <input type="hidden" name="search_type" value="journal-article">
                                 <a class="active item" data-value="journal-article">Статьи в журнале</a>
                                 <a class="item" data-value="book">Книги</a>
                                 <a class="item" data-value="book-chapter">В сборнике</a>
                             </div>
-                            <div id="search-type" class="ui two item menu">
+                            <div id="search-type" class="ui three item menu">
                                 <a class="active item" data-value="main-search">Полный поиск</a>
                                 <a class="item" data-value="extend-search">Поиск по полям</a>
+                                <a class="item" data-value="doi-search">Поиск по DOI</a>
                             </div>
                             <div class="main-search">
                                 <div class="field">
@@ -51,12 +53,20 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="doi-search hide">
+                                <div class="field">
+                                    <label>DOI</label>
+                                    <input type="text" name="doi"
+                                           placeholder="Введите DOI...">
+                                </div>
+                            </div>
                             <div class="child-center">
                                 <button class="large ui primary button">
                                     <i class="search icon"></i>
                                     Искать
                                 </button>
                             </div>
+
                         </form>
                     </div>
                 </div>
@@ -70,14 +80,21 @@
             var $input_search_type = $('input[name=search_type]');
             var $main_search = $('.main-search');
             var $extend_search = $('.extend-search');
+            var $doi_search = $('.doi-search');
             $('#search-type .item').click(function () {
                 var search_type = $(this).attr('data-value');
                 if (search_type === 'main-search') {
                     $main_search.removeClass('hide');
                     $extend_search.addClass('hide');
+                    $doi_search.addClass('hide')
+                } else if (search_type === 'extend-search') {
+                    $main_search.addClass('hide');
+                    $doi_search.addClass('hide')
+                    $extend_search.removeClass('hide');
                 } else {
                     $main_search.addClass('hide');
-                    $extend_search.removeClass('hide');
+                    $doi_search.removeClass('hide')
+                    $extend_search.addClass('hide');
                 }
             });
             $('button').click(function () {

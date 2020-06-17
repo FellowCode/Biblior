@@ -19,8 +19,8 @@ var cite_formatter = {
     },
     'ieee': {
         'journal-article': createIeeeArticle,
-        'book': createIeeeArticle,
-        'book-chapter': createIeeeArticle,
+        'book': createIeeeBook,
+        'book-chapter': createIeeeBook,
         'web': createIeeeWeb
     }
 };
@@ -68,7 +68,7 @@ function createApaArticle(author, title, container, issued, volume, issue, page,
     authors.forEach(function (val, i, a) {
         a[i] = val.replace(' ', ', ')
     });
-    authors = formatArray(authors);
+    authors = formatArray(authors, '&');
     var apa = `${authors} (${issued}). ${title}. ${container}, `;
 
     if (volume.length > 0) {
@@ -79,9 +79,9 @@ function createApaArticle(author, title, container, issued, volume, issue, page,
     }
     if (page.length > 0) {
         if (page.includes('-'))
-            apa += `, pp. ${page}.`;
+            apa += `, pp.${page}.`;
         else
-            apa += `, p. ${page}.`;
+            apa += `, p.${page}.`;
     }
 
 
@@ -94,7 +94,7 @@ function createApaBook(author, title, container, issued, volume, issue, page, pu
     authors.forEach(function (val, i, a) {
         a[i] = val.replace(/ /g, ', ')
     });
-    authors = formatArray(authors);
+    authors = formatArray(authors, '&');
     var apa = `${authors} (${issued}). ${title}. ${publisher}`;
     return apa
 }
@@ -105,7 +105,7 @@ function createApaWeb(author, title, container, issued, volume, issue, page, pub
     authors.forEach(function (val, i, a) {
         a[i] = val.replace(/ /g, ', ')
     });
-    authors = formatArray(authors);
+    authors = formatArray(authors, '&');
     accessed = accessed.split('.');
     var mon = month[parseInt(accessed[1])];
     return `${authors} (${accessed[2]}, ${mon} ${accessed[0].replace(/^0/, '')}). ${title}. Retrieved from ${url}`
@@ -177,10 +177,39 @@ function createIeeeArticle(author, title, container, issued, volume, issue, page
         a[i] = parts[1].replace(/\./g, '. ') + parts[0];
     });
     authors = formatArray(authors);
-    var ieee = `${authors}, "${title}" in ${container}`;
+    var ieee = `${authors}, "${title}," ${container}`;
 
     if (volume.length > 0)
-        ieee += `, Vol. ${volume}`;
+        ieee += `, vol. ${volume}`;
+    if (issue.length > 0)
+        ieee += `, no. ${issue}`;
+    if (publisher.length > 0)
+        ieee += `, ${publisher}`;
+    if (page.length > 0) {
+        if (page.includes('-'))
+            ieee += `, pp. ${page}`;
+        else
+            ieee += `, p. ${page}`;
+    }
+    ieee += `, ${issued}.`;
+    ieee = ieee.replace('",', '"')
+    return ieee
+}
+
+function createIeeeBook(author, title, container, issued, volume, issue, page, publisher, url, accessed) {
+    author = formatAuthor(author);
+    var authors = author.split(', ');
+    authors.forEach(function (val, i, a) {
+        var parts = val.split(' ');
+        a[i] = parts[1].replace(/\./g, '. ') + parts[0];
+    });
+    authors = formatArray(authors);
+    var ieee = `${authors}, "${title},"`;
+
+    if (container.length > 0)
+        ieee += ` in ${container}`
+    if (volume.length > 0)
+        ieee += `, vol. ${volume}`;
     if (issue.length > 0)
         ieee += `, no. ${issue}`;
     if (publisher.length > 0)
@@ -192,6 +221,7 @@ function createIeeeArticle(author, title, container, issued, volume, issue, page
         else
             ieee += `, p. ${page}.`;
     }
+    ieee = ieee.replace('",', '"')
     return ieee
 }
 
@@ -219,22 +249,28 @@ function createIeeeWeb(author, title, container, issued, volume, issue, page, pu
 }
 
 
-function formatArray(arr) {
+function formatArray(arr, sep = 'and', max_authors = 7) {
     var outStr = "";
     if (arr.length === 1) {
         outStr = arr[0];
     } else if (arr.length === 2) {
         //joins all with "and" but no commas
         //example: "bob and sam"
-        outStr = arr.join(' and ');
+        outStr = arr.join(` ${sep} `);
     } else if (arr.length > 2) {
         //joins all with commas, but last one gets ", and" (oxford comma!)
         //example: "bob, joe, and sam"
-        outStr = arr.slice(0, -1).join(', ') + ', and ' + arr.slice(-1);
+        if (arr.length <= max_authors)
+            outStr = arr.slice(0, -1).join(', ') + `, ${sep} ` + arr.slice(-1);
+        else
+            outStr = arr.slice(0, max_authors - 1).join(', ') + `,... ` + arr.slice(-1);
+
     }
     return outStr;
 }
 
 function formatAuthor(author) {
-    return author.replace(/\s+/, ' ').replace('\n', '').replace(/\s+$/, '');
+    if (typeof author !== 'undefined')
+        return author.replace(/\s+/, ' ').replace('\n', '').replace(/\s+$/, '');
+    return ''
 }
