@@ -28,7 +28,8 @@
                                 <p></p>
                             </div>
                             <div id="pub_type" class="ui four item menu">
-                                <input type="hidden" name="pub_type" value="{% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
+                                <input type="hidden" name="pub_type" value="
+                                        {% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
                                 <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item"
                                    data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
@@ -46,7 +47,8 @@
                             <form action=""
                                   class="ui form remove-empty-values {% if not custom and pub and doi %}warning{% endif %} error">
                                 {% csrf_token %}
-                                <input type="hidden" name="type" value="{% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
+                                <input type="hidden" name="type" value="
+                                        {% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
                                 <input type="hidden" name="id" {% if pub_id %}value="{{ pub_id }}"{% endif %}>
                                 <input type="hidden" name="doi" {% if doi %}value="{{ doi }}"{% endif %}>
                                 <div class="ui warning message">
@@ -139,8 +141,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="issue" value="{{ pub.issue|default_if_none:"" }}">
-                                        <input type="hidden" name="page" value="{{ pub.page|default_if_none:"" }}">
-                                        <div class="two fields">
+                                        <div class="three fields">
                                             <div class="field">
                                                 <label>Том</label>
                                                 <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
@@ -148,6 +149,10 @@
                                             <div class="field">
                                                 <label>Год</label>
                                                 <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+                                            </div>
+                                            <div class="field">
+                                                <label>Кол-во страниц</label>
+                                                <input name="page" value="{{ pub.page|default_if_none:"" }}">
                                             </div>
                                         </div>
                                     </div>
