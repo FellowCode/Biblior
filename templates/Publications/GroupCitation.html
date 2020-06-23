@@ -77,6 +77,8 @@
                     var issue = $(this).find('meta[name=issue]').attr('content');
                     var volume = $(this).find('meta[name=volume]').attr('content');
                     var page = $(this).find('meta[name=page]').attr('content');
+                    if (type !== 'book' && type !== 'journal-article' && type !== 'book-chapter' && type !== 'web')
+                        type = 'journal-article'
                     if (numberic)
                         $(this).find('a').text(`${(index + 1)}. ` + cite_formatter[cite_template][type](author, title, container_title, issued, volume, issue, page, publisher));
                     else

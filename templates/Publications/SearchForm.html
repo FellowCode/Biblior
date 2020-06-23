@@ -81,20 +81,27 @@
             var $main_search = $('.main-search');
             var $extend_search = $('.extend-search');
             var $doi_search = $('.doi-search');
+            $('input:not([name=search_type])').val('')
             $('#search-type .item').click(function () {
                 var search_type = $(this).attr('data-value');
                 if (search_type === 'main-search') {
                     $main_search.removeClass('hide');
                     $extend_search.addClass('hide');
+                    $extend_search.find('input').val('')
                     $doi_search.addClass('hide')
+                    $doi_search.find('input').val('')
                 } else if (search_type === 'extend-search') {
                     $main_search.addClass('hide');
+                    $main_search.find('input').val('')
                     $doi_search.addClass('hide')
+                    $doi_search.find('input').val('')
                     $extend_search.removeClass('hide');
                 } else {
                     $main_search.addClass('hide');
+                    $main_search.find('input').val('')
                     $doi_search.removeClass('hide')
                     $extend_search.addClass('hide');
+                    $extend_search.find('input').val('')
                 }
             });
             $('button').click(function () {

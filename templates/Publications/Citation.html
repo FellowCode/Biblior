@@ -28,8 +28,7 @@
                                 <p></p>
                             </div>
                             <div id="pub_type" class="ui four item menu">
-                                <input type="hidden" name="pub_type" value="
-                                        {% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
+                                <input type="hidden" name="pub_type" value="{% if doi %}{{ type }}{% else %}{{ type|default_if_none:'journal-article' }}{% endif %}">
                                 <a class="{% if type == 'journal-article' or not type and not doi %}active{% endif %} item"
                                    data-value="journal-article">Статья</a>
                                 <a class="{% if type == 'book' %}active{% endif %} item" data-value="book">Книга</a>
@@ -58,57 +57,8 @@
                                             оригинал</a></li>
                                     </ul>
                                 </div>
-                                {% if type == 'journal-article' or not type and not doi %}
-                                    <input type="hidden" name="publisher"
-                                           value="{{ pub.publisher|default_if_none:"" }}">
-                                    <input type="hidden" name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
-                                    <input type="hidden" name="url" value="{{ pub.url|default_if_none:"" }}">
-                                    <div id="journal-article-form">
-                                        <div class="field">
-                                            <label>Название публикации</label>
-                                            <textarea name="title"
-                                                      rows="2">{{ pub.title|default_if_none:"" }}</textarea>
-                                            <div class="sixteen wide">
-                                                <a id="toSentence">Как в предложении</a>
-                                            </div>
-                                        </div>
-
-                                        <div class="field">
-                                            <label>Авторы</label>
-                                            <textarea name="author"
-                                                      rows="2">{{ pub.author|default_if_none:"" }}</textarea>
-                                            <div class="sixteen wide">
-                                                <a id="fixRegistr">Исправить регистр</a>
-                                            </div>
-                                            <div id="author-error" class="ui error message hide">
-                                                <div class="header">Ошибка</div>
-                                                <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
-                                            </div>
-                                        </div>
-                                        <div class="field">
-                                            <label>Журнал</label>
-                                            <textarea name="container_title"
-                                                      rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
-                                        </div>
-                                        <div class="four fields">
-                                            <div class="field">
-                                                <label>Год</label>
-                                                <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
-                                            </div>
-                                            <div class="field">
-                                                <label>Том</label>
-                                                <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
-                                            </div>
-                                            <div class="field">
-                                                <label>Номер</label>
-                                                <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
-                                            </div>
-                                            <div class="field">
-                                                <label>Страницы</label>
-                                                <input name="page" value="{{ pub.page|default_if_none:"" }}">
-                                            </div>
-                                        </div>
-                                    </div>
+                                {% if not type or type == 'journal-article' %}
+                                    {% include 'Publications/journal_form.html' %}
                                 {% elif type == "book" %}
                                     <input type="hidden" name="container_title"
                                            value="{{ pub.container_title|default_if_none:"" }}">
@@ -251,6 +201,8 @@
                                             <input name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
                                         </div>
                                     </div>
+                                {% else %}
+                                    {% include 'Publications/journal_form.html' %}
                                 {% endif %}
                                 <div class="child-center">
                                     <button id="update-cite" class="large ui primary button">
@@ -368,7 +320,7 @@
             var counter = 0;
 
             function checkResult() {
-                $.get("{% url 'pub:result' %}", function (data) {
+                $.get("{% url 'pub:result' %}?uid={{ uid }}", function (data) {
                     counter++;
                     if (counter > 7) {
                         clearInterval(interval);
@@ -379,8 +331,13 @@
                         clearInterval(interval);
                         $result.text(data['gost']);
                         var pub = data['publication'];
-                        if (pub['type'] !== type) {
-                            console.log('aa')
+                        if (pub['type'] !== 'journal-article' &&
+                            pub['type'] !== 'book' &&
+                            pub['type'] !== 'book-chapter') {
+                            if ($('input[name=pub_type]').val() !== 'journal-article') {
+                                window.location.href = `/publication/?doi=${doi}&type=journal-article`
+                            }
+                        } else if (pub['type'] !== type) {
                             window.location.href = `/publication/?doi=${doi}&type=${pub['type']}`
                         }
                         $title.text(pub['title']);

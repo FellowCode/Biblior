@@ -1,0 +1,50 @@
+<input type="hidden" name="publisher"
+       value="{{ pub.publisher|default_if_none:"" }}">
+<input type="hidden" name="accessed" value="{{ pub.accessed|default_if_none:"" }}">
+<input type="hidden" name="url" value="{{ pub.url|default_if_none:"" }}">
+<div id="journal-article-form">
+    <div class="field">
+        <label>Название публикации</label>
+        <textarea name="title"
+                  rows="2">{{ pub.title|default_if_none:"" }}</textarea>
+        <div class="sixteen wide">
+            <a id="toSentence">Как в предложении</a>
+        </div>
+    </div>
+
+    <div class="field">
+        <label>Авторы</label>
+        <textarea name="author"
+                  rows="2">{{ pub.author|default_if_none:"" }}</textarea>
+        <div class="sixteen wide">
+            <a id="fixRegistr">Исправить регистр</a>
+        </div>
+        <div id="author-error" class="ui error message hide">
+            <div class="header">Ошибка</div>
+            <p>Авторы должны быть указаны в виде: Иванов П.А, Петров З.В.</p>
+        </div>
+    </div>
+    <div class="field">
+        <label>Журнал</label>
+        <textarea name="container_title"
+                  rows="1">{{ pub.container_title|default_if_none:"" }}</textarea>
+    </div>
+    <div class="four fields">
+        <div class="field">
+            <label>Год</label>
+            <input name="issued" value="{{ pub.issued|default_if_none:"" }}">
+        </div>
+        <div class="field">
+            <label>Том</label>
+            <input name="volume" value="{{ pub.volume|default_if_none:"" }}">
+        </div>
+        <div class="field">
+            <label>Номер</label>
+            <input name="issue" value="{{ pub.issue|default_if_none:"" }}">
+        </div>
+        <div class="field">
+            <label>Страницы</label>
+            <input name="page" value="{{ pub.page|default_if_none:"" }}">
+        </div>
+    </div>
+</div>

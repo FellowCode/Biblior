@@ -10,6 +10,7 @@ from utils.search_query import *
 import pprint
 from urllib.parse import unquote
 import json
+import uuid
 
 
 def search(request):
@@ -18,9 +19,10 @@ def search(request):
 
 def search_result(request):
     if request.GET.get('doi'):
-        return redirect('/publication/?doi='+urllib.parse.quote(request.GET.get('doi')))
+        return redirect('/publication/?type=journal-article&doi='+urllib.parse.quote(request.GET.get('doi')))
     query = get_search_query(request, rows=60)
-    search_crossref(query, request.session['uid'])
+    uid = uuid.uuid4().hex
+    search_crossref(query, uid)
     if request.GET.get('query_bibliographic'):
         search_query = 'Слова: ' + ', '.join(request.GET.get('query_bibliographic').split(' '))
     else:
@@ -32,12 +34,12 @@ def search_result(request):
         if request.GET.get('query_container'):
             search_fields.append('Журнал/Сборник: ' + request.GET.get('query_container'))
         search_query = ', '.join(search_fields)
-    return render(request, 'Publications/SearchResult.html', {'type': request.GET.get('search_type'), 'search_query': search_query})
+    return render(request, 'Publications/SearchResult.html', {'type': request.GET.get('search_type'), 'search_query': search_query, 'uid': uid})
 
 
 def ajax_pubs(request):
     if request.is_ajax():
-        result = get_publications(request.session['uid'])
+        result = get_publications(request.GET.get('uid'))
         if not result:
             return JsonResponse({'status': False})
         publications = []
@@ -60,7 +62,7 @@ def cite(request):
             pub[key] = value[0]
     else:
         pub = None
-    data = {'type': pub_type, 'doi': doi, 'pub': pub, 'pub_id': pub_id}
+    data = {'type': pub_type, 'doi': doi, 'pub': pub, 'pub_id': pub_id, 'uid': uuid.uuid4().hex}
     if not pub and (pub_id or doi):
         if source == 'personal-area' and request.user.is_authenticated:
             if pub_id:
@@ -71,15 +73,15 @@ def cite(request):
                 data['custom'] = True
                 data['pub'] = pub
             else:
-                get_publication(doi, request.session['uid'])
+                get_publication(doi, data['uid'])
         else:
-            get_publication(doi, request.session['uid'])
+            get_publication(doi, data['uid'])
     return render(request, 'Publications/Citation.html', data)
 
 
 def ajax_pub(request):
     if request.is_ajax():
-        result = get_pub_result(request.session['uid'])
+        result = get_pub_result(request.GET.get('uid'))
         if not result:
             return JsonResponse({'status': False})
         if request.user.is_authenticated:
@@ -103,7 +105,8 @@ def save_cite(request):
 
 
 def group_cite(request):
+    print(list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites'))))))
     sel_cites = list(map(int, json.loads(unquote(request.COOKIES.get('selected_cites')))))
     pubs = Publication.objects.filter(user=request.user, id__in=sel_cites).all()
-
+    print(pubs)
     return render(request, 'Publications/GroupCitation.html', {'pubs': pubs})

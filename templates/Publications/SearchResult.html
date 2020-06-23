@@ -71,7 +71,7 @@
             }
 
             function checkResult() {
-                $.get("{% url 'pub:list_result' %}", function (data) {
+                $.get("{% url 'pub:list_result' %}?uid={{ uid }}", function (data) {
                     counter++;
                     if (counter > 15)
                         clearInterval(interval);

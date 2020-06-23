@@ -14,13 +14,13 @@ var cite_formatter = {
     'harvard': {
         'journal-article': createHarvardArticle,
         'book': createHarvardBook,
-        'book-chapter': createHarvardArticle,
+        'book-chapter': createHarvardBookChapter,
         'web': createHarvardWeb
     },
     'ieee': {
         'journal-article': createIeeeArticle,
         'book': createIeeeBook,
-        'book-chapter': createIeeeBook,
+        'book-chapter': createIeeeBookChapter,
         'web': createIeeeWeb
     }
 };
@@ -52,7 +52,13 @@ function createGostBook(author, title, container, issued, volume, issue, page, p
         authors = authors.slice(0, 1) + ' и др.';
     else
         authors = authors.join(', ');
-    var gost = `${authors} ${title}. – ${publisher}, – ${issued}.`;
+    var gost = `${authors} ${title}. – ${publisher},`;
+    if (volume.length > 0)
+        gost += ` – Т. ${volume}.`;
+    if (issued.length > 0)
+        gost += ` – ${issued}.`
+    if (page.length > 0)
+        gost += ` – ${page} С.`
     return gost;
 }
 
@@ -152,8 +158,21 @@ function createHarvardBook(author, title, container, issued, volume, issue, page
     authors.forEach(function (val, i, a) {
         a[i] = val.replace(' ', ', ')
     });
-    authors = formatArray(authors);
-    var harvard = `${authors} (${issued}). ${title}. ${publisher}`;
+    authors = formatArray(authors, '&');
+    var harvard = `${authors} ${issued}, ${title}, ${publisher}`;
+    return harvard
+}
+
+function createHarvardBookChapter(author, title, container, issued, volume, issue, page, publisher, url, accessed) {
+    author = formatAuthor(author);
+    var authors = author.split(', ');
+    authors.forEach(function (val, i, a) {
+        a[i] = val.replace(' ', ', ')
+    });
+    authors = formatArray(authors, '&');
+    var harvard = `${authors} ${issued}, '${title}', in ${publisher}`;
+    if (page.length > 0)
+        harvard += `, pp.${page}`
     return harvard
 }
 
@@ -165,7 +184,7 @@ function createHarvardWeb(author, title, container, issued, volume, issue, page,
     });
     authors = formatArray(authors);
     accessed = accessed.split('.');
-    var short_m = Date.shortMonths[parseInt(accessed[1])];
+    var short_m = Date.shortMonths[parseInt(accessed[1] - 1)];
     return `${authors} (${issued}). ${title}. [online] Available at: ${url} [Accessed ${accessed[0]} ${short_m}. ${accessed[2]}].`
 }
 
@@ -225,10 +244,35 @@ function createIeeeBook(author, title, container, issued, volume, issue, page, p
     return ieee
 }
 
+function createIeeeBookChapter(author, title, container, issued, volume, issue, page, publisher, url, accessed) {
+    author = formatAuthor(author);
+    var authors = author.split(', ');
+    authors.forEach(function (val, i, a) {
+        var parts = val.split(' ');
+        a[i] = parts[1].replace(/\./g, '. ') + parts[0];
+    });
+    authors = formatArray(authors);
+    var ieee = `${authors}, "${title}," in ${container}`;
+
+    if (volume.length > 0)
+        ieee += `, Vol. ${volume}`;
+    if (publisher.length > 0)
+        ieee += `, ${publisher}`;
+    if (page.length > 0) {
+        if (page.includes('-'))
+            ieee += `, pp. ${page}`;
+        else
+            ieee += `, p. ${page}`;
+    }
+    ieee += `, ${issued}.`;
+    ieee = ieee.replace('",', '"')
+    return ieee
+}
+
 function createIeeeWeb(author, title, container, issued, volume, issue, page, publisher, url, accessed) {
     author = formatAuthor(author);
     accessed = accessed.split('.');
-    var short_m = Date.shortMonths[parseInt(accessed[1])];
+    var short_m = Date.shortMonths[parseInt(accessed[1] - 1)];
     var result = '';
     if (author.length > 0) {
         var authors = author.split(', ');
